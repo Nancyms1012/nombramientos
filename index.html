@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Comisión Disciplinaria AJUCI - Nombramientos</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -397,6 +398,8 @@
             }
         }
         loadDataAndRender();
+        // Desactivar datalabels globalmente (solo se activa por grafica)
+        Chart.defaults.plugins.datalabels = { display: false };
 
 
         // === RESUMEN EJECUTIVO ===
@@ -559,7 +562,7 @@
 
             // Modalidad - degradado #FF3399
             const modGrad=topMod.map((_,i)=>{const pct=i/Math.max(topMod.length-1,1);const r=Math.round(255*(1-pct)+255*pct);const g=Math.round(51*(1-pct)+150*pct);const b=Math.round(153*(1-pct)+200*pct);return `rgb(${r},${g},${b})`;});
-            chartModalidad=new Chart(document.getElementById('chartModalidad'),{type:'bar',data:{labels:topMod.map(x=>`${x[0]} (${x[1]})`),datasets:[{label:'Eventos',data:topMod.map(x=>x[1]),backgroundColor:modGrad}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{display:false}},x:{grid:{display:false}}}}});
+            chartModalidad=new Chart(document.getElementById('chartModalidad'),{type:'bar',data:{labels:topMod.map(x=>x[0]),datasets:[{label:'Eventos',data:topMod.map(x=>x[1]),backgroundColor:modGrad}]},plugins:[ChartDataLabels],options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{anchor:'end',align:'top',font:{weight:'bold',size:11},color:'#333'}},scales:{y:{display:false,beginAtZero:true,grid:{display:false}},x:{grid:{display:false}}}}});
 
             // Roles - degradado #6600CC
             const rolGrad=topRol.map((_,i)=>{const pct=i/Math.max(topRol.length-1,1);const r=Math.round(102*(1-pct)+160*pct);const g=Math.round(0*(1-pct)+80*pct);const b=Math.round(204*(1-pct)+230*pct);return `rgb(${r},${g},${b})`;});
