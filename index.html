@@ -58,7 +58,7 @@
 <body class="bg-gray-50 onepager-mode">
     <div id="toast" class="toast"></div>
     
-    <div class="container mx-auto px-4 py-8 max-w-7xl op-container">
+    <div class="container mx-auto px-4 py-8 max-w-full op-container">
         <div class="rounded-lg shadow-lg p-8 mb-6 text-white op-header" style="background: linear-gradient(to right, #1F497D, #162f54);">
             <h1 class="text-4xl font-bold mb-2">Dashboard AJUCI</h1>
             <p class="text-xl opacity-90">Nombramientos de Jueces de Ciclismo</p>
@@ -189,16 +189,16 @@
 
 
             <!-- TAB 1: GRAFICAS -->
-            <div id="panel-graficas" class="p-4" style="display:none;">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                    <div class="bg-white rounded-lg shadow p-4"><h2 class="text-sm font-bold text-gray-800 mb-2">Nombramientos por Modalidad</h2><div class="chart-container" style="height:250px;"><canvas id="chartModalidad"></canvas></div></div>
-                    <div class="bg-white rounded-lg shadow p-4"><h2 class="text-sm font-bold text-gray-800 mb-2">Top 10 Roles</h2><div class="chart-container" style="height:250px;"><canvas id="chartRoles"></canvas></div></div>
-                    <div class="bg-white rounded-lg shadow p-4"><h2 class="text-sm font-bold text-gray-800 mb-2">Duracion de Eventos</h2><div class="chart-container" style="height:250px;"><canvas id="chartDuracion"></canvas></div></div>
+            <div id="panel-graficas" class="p-3" style="display:none;">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                    <div class="bg-white rounded-lg shadow p-3"><h2 class="text-xs font-bold text-gray-800 mb-1">Nombramientos por Modalidad</h2><div style="height:200px;"><canvas id="chartModalidad"></canvas></div></div>
+                    <div class="bg-white rounded-lg shadow p-3"><h2 class="text-xs font-bold text-gray-800 mb-1">Top 10 Roles</h2><div style="height:200px;"><canvas id="chartRoles"></canvas></div></div>
+                    <div class="bg-white rounded-lg shadow p-3"><h2 class="text-xs font-bold text-gray-800 mb-1">Duracion de Eventos</h2><div style="height:200px;"><canvas id="chartDuracion"></canvas></div></div>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="bg-white rounded-lg shadow p-4"><h2 class="text-sm font-bold text-gray-800 mb-2">Top 10 Jueces por Dias Acumulados</h2><div class="chart-container" style="height:250px;"><canvas id="chartPersonasDias"></canvas></div></div>
-                    <div class="bg-white rounded-lg shadow p-4"><h2 class="text-sm font-bold text-gray-800 mb-2">Top 10 Jueces con Mas Nombramientos</h2><div class="chart-container" style="height:250px;"><canvas id="chartNombres"></canvas></div></div>
-                    <div class="bg-white rounded-lg shadow p-4"><h2 class="text-sm font-bold text-gray-800 mb-2">Bottom 10 Menos Nombramientos</h2><div class="chart-container" style="height:250px;"><canvas id="chartBottom"></canvas></div></div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div class="bg-white rounded-lg shadow p-3"><h2 class="text-xs font-bold text-gray-800 mb-1">Top 10 Jueces por Dias Acumulados</h2><div style="height:200px;"><canvas id="chartPersonasDias"></canvas></div></div>
+                    <div class="bg-white rounded-lg shadow p-3"><h2 class="text-xs font-bold text-gray-800 mb-1">Top 10 Jueces con Mas Nombramientos</h2><div style="height:200px;"><canvas id="chartNombres"></canvas></div></div>
+                    <div class="bg-white rounded-lg shadow p-3"><h2 class="text-xs font-bold text-gray-800 mb-1">Bottom 10 Menos Nombramientos</h2><div style="height:200px;"><canvas id="chartBottom"></canvas></div></div>
                 </div>
             </div>
 
