@@ -201,7 +201,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div class="bg-white rounded-lg shadow p-3"><h2 class="text-xs font-bold text-gray-800 mb-1">Top 10 Jueces por Dias Acumulados</h2><div style="height:280px;"><canvas id="chartPersonasDias"></canvas></div></div>
                     <div class="bg-white rounded-lg shadow p-3"><h2 class="text-xs font-bold text-gray-800 mb-1">Top 10 Jueces con Mas Nombramientos</h2><div style="height:280px;"><canvas id="chartNombres"></canvas></div></div>
-                    <div class="bg-white rounded-lg shadow p-3"><h2 class="text-xs font-bold text-gray-800 mb-1">Bottom 10 Menos Nombramientos</h2><div style="height:280px;"><canvas id="chartBottom"></canvas></div></div>
+                    <div class="bg-white rounded-lg shadow p-3"><h2 class="text-xs font-bold text-gray-800 mb-1">Top 10 Jueces en Eventos 3+ Dias</h2><div style="height:280px;"><canvas id="chartBottom"></canvas></div></div>
                 </div>
             </div>
 
@@ -545,6 +545,10 @@
             const topMod=Object.entries(modC).sort((a,b)=>b[1]-a[1]).slice(0,5);
             const topNom=Object.entries(nomC).sort((a,b)=>b[1]-a[1]).slice(0,10);
             const botNom=Object.entries(nomC).sort((a,b)=>a[1]-b[1]).filter(([,v])=>v>0).slice(0,10);
+            // Top 10 jueces en eventos de 3+ dias
+            const longC={};
+            DATA.filter(r=>r.CLAS_DURAC==='3 días'||r.CLAS_DURAC==='4 días o más').forEach(r=>{longC[r.NOMBRE]=(longC[r.NOMBRE]||0)+1;});
+            const topLong=Object.entries(longC).sort((a,b)=>b[1]-a[1]).slice(0,10);
             const topPD=Object.entries(pdC).sort((a,b)=>b[1]-a[1]).slice(0,10);
             const topRol=Object.entries(rolC).sort((a,b)=>b[1]-a[1]).slice(0,10);
             const totalMod=topMod.reduce((s,[,c])=>s+c,0);
@@ -570,8 +574,8 @@
             // Top 10 nombramientos
             chartNombres=new Chart(document.getElementById('chartNombres'),{type:'bar',data:{labels:topNom.map(x=>`${x[0]} (${x[1]})`),datasets:[{label:'Nombramientos',data:topNom.map(x=>x[1]),backgroundColor:'#4F81BD'}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,grid:{display:false}},y:{grid:{display:false}}}}});
 
-            // Bottom 10 nombramientos
-            chartBottom=new Chart(document.getElementById('chartBottom'),{type:'bar',data:{labels:botNom.map(x=>`${x[0]} (${x[1]})`),datasets:[{label:'Nombramientos',data:botNom.map(x=>x[1]),backgroundColor:'#E46C0A'}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,grid:{display:false}},y:{grid:{display:false}}}}});
+            // Top 10 jueces en eventos 3+ dias
+            chartBottom=new Chart(document.getElementById('chartBottom'),{type:'bar',data:{labels:topLong.map(x=>`${x[0]} (${x[1]})`),datasets:[{label:'Participaciones',data:topLong.map(x=>x[1]),backgroundColor:'#E46C0A'}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,grid:{display:false}},y:{grid:{display:false}}}}});
 
             // Tendencia mensual
             const mesC={};
@@ -605,7 +609,11 @@
             if(chartDuracion){chartDuracion.data.labels=dL.map((l,i)=>`${l} (${(dV[i]/totalDur*100).toFixed(1)}%)`);chartDuracion.data.datasets[0].data=dV;chartDuracion.update();}
             if(chartPersonasDias){chartPersonasDias.data.labels=topPD.map(x=>`${x[0]} (${x[1]})`);chartPersonasDias.data.datasets[0].data=topPD.map(x=>x[1]);chartPersonasDias.update();}
             if(chartNombres){chartNombres.data.labels=topNom.map(x=>`${x[0]} (${x[1]})`);chartNombres.data.datasets[0].data=topNom.map(x=>x[1]);chartNombres.update();}
-            if(chartBottom){chartBottom.data.labels=botNom.map(x=>`${x[0]} (${x[1]})`);chartBottom.data.datasets[0].data=botNom.map(x=>x[1]);chartBottom.update();}
+            if(chartBottom){
+                const longC2={};DATA.filter(r=>r.CLAS_DURAC==='3 días'||r.CLAS_DURAC==='4 días o más').forEach(r=>{longC2[r.NOMBRE]=(longC2[r.NOMBRE]||0)+1;});
+                const topLong2=Object.entries(longC2).sort((a,b)=>b[1]-a[1]).slice(0,10);
+                chartBottom.data.labels=topLong2.map(x=>`${x[0]} (${x[1]})`);chartBottom.data.datasets[0].data=topLong2.map(x=>x[1]);chartBottom.update();
+            }
             const mesC={};DATA.forEach(r=>{mesC[r.MES]=(mesC[r.MES]||0)+(r.CONT_EVENTO||0);});
             const mesesOrd=Array.from({length:12},(_,i)=>i+1).filter(m=>mesC[m]);
             if(chartTendencia){chartTendencia.data.labels=mesesOrd.map(m=>mesesNombres[m]);chartTendencia.data.datasets[0].data=mesesOrd.map(m=>mesC[m]);chartTendencia.update();}
