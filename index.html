@@ -408,8 +408,8 @@
             document.getElementById('modalidades-top').innerHTML = topM.map(([m,c]) => `<div><div class="flex justify-between items-center mb-1"><span class="text-sm font-medium text-gray-700">${m}</span><span class="text-xs font-bold" style="color:#558000;">${c}</span></div><div class="w-full bg-gray-200 rounded-full h-2"><div class="h-2 rounded-full" style="width:${c/mxM*100}%;background:#CCFF33;"></div></div></div>`).join('');
 
             // Duracion Stats
-            const de = {}, ec = new Set();
-            DATA.forEach(r => { if (!ec.has(r.NOMBRE_EVENTO)) { ec.add(r.NOMBRE_EVENTO); de[r.CLAS_DURAC] = (de[r.CLAS_DURAC]||0) + 1; } });
+            const de = {};
+            DATA.forEach(r => { de[r.CLAS_DURAC] = (de[r.CLAS_DURAC]||0) + (r.CONT_EVENTO||0); });
             document.getElementById('duracion-stats').innerHTML = ['1 día','2 días','3 días','4 días o más'].filter(d => de[d]).map(d => `<div class="rounded-lg p-3 text-center border" style="background:#fff3e0;border-color:#E46C0A;"><div class="text-xl font-bold" style="color:#E46C0A;">${de[d]||0}</div><div class="text-xs text-gray-600 mt-1">${d}</div></div>`).join('');
 
             // Tabla Mensual
