@@ -557,8 +557,8 @@
             const dL=[],dV=[];dOrd.forEach(l=>{if(durC[l]){dL.push(l);dV.push(durC[l]);}});
             const totalDur=dV.reduce((a,b)=>a+b,0);
 
-            // Modalidad - degradado #003AB3
-            const modGrad=topMod.map((_,i)=>{const pct=i/Math.max(topMod.length-1,1);const r=Math.round(0*(1-pct)+0*pct);const g=Math.round(58*(1-pct)+120*pct);const b=Math.round(179*(1-pct)+220*pct);return `rgb(${r},${g},${b})`;});
+            // Modalidad - degradado #FF3399
+            const modGrad=topMod.map((_,i)=>{const pct=i/Math.max(topMod.length-1,1);const r=Math.round(255*(1-pct)+255*pct);const g=Math.round(51*(1-pct)+150*pct);const b=Math.round(153*(1-pct)+200*pct);return `rgb(${r},${g},${b})`;});
             chartModalidad=new Chart(document.getElementById('chartModalidad'),{type:'bar',data:{labels:topMod.map(x=>`${x[0]} (${x[1]})`),datasets:[{label:'Eventos',data:topMod.map(x=>x[1]),backgroundColor:modGrad}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{display:false}},x:{grid:{display:false}}}}});
 
             // Roles - degradado #6600CC
