@@ -613,7 +613,7 @@
             const topRol=Object.entries(rolC).sort((a,b)=>b[1]-a[1]).slice(0,10);
             const totalMod=topMod.reduce((s,[,c])=>s+c,0);
             const totalRol=topRol.reduce((s,[,c])=>s+c,0);
-            if(chartModalidad){chartModalidad.data.labels=topMod.map(x=>`${x[0]} (${x[1]})`);chartModalidad.data.datasets[0].data=topMod.map(x=>x[1]);chartModalidad.update();}
+            if(chartModalidad){chartModalidad.data.labels=topMod.map(x=>x[0]);chartModalidad.data.datasets[0].data=topMod.map(x=>x[1]);chartModalidad.update();}
             if(chartRoles){chartRoles.data.labels=topRol.map(x=>`${x[0]} (${x[1]})`);chartRoles.data.datasets[0].data=topRol.map(x=>x[1]);chartRoles.update();}
             if(chartDuracion){chartDuracion.data.labels=dL.map((l,i)=>`${l} (${(dV[i]/totalDur*100).toFixed(1)}%)`);chartDuracion.data.datasets[0].data=dV;chartDuracion.update();}
             if(chartPersonasDias){chartPersonasDias.data.labels=topPD.map(x=>`${x[0]} (${x[1]})`);chartPersonasDias.data.datasets[0].data=topPD.map(x=>x[1]);chartPersonasDias.update();}
