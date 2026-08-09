@@ -150,22 +150,28 @@
                         <div id="top5-jueces" class="space-y-2"></div>
                     </div>
                     <div class="space-y-4">
+                        <div class="bg-white rounded-lg shadow p-5" style="border-left: 4px solid #E46C0A;">
+                            <h3 class="text-lg font-bold text-gray-800 mb-3">Bottom 5 Jueces</h3>
+                            <div id="bottom5-jueces" class="space-y-2"></div>
+                        </div>
                         <div class="bg-white rounded-lg shadow p-5" style="border-left: 4px solid #CCFF33;">
                             <h3 class="text-lg font-bold text-gray-800 mb-3">Top 5 Modalidades</h3>
                             <div id="modalidades-top" class="space-y-2"></div>
                         </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="bg-white rounded-lg shadow p-5" style="border-left: 4px solid #7030A0;">
+                            <h3 class="text-lg font-bold text-gray-800 mb-3">Actividad Mensual</h3>
+                            <div class="overflow-y-auto op-mensual-scroll" style="max-height: 200px;">
+                                <table class="w-full text-sm">
+                                    <thead class="bg-gray-100 sticky top-0"><tr><th class="px-3 py-2 text-left font-semibold text-gray-700">Mes</th><th class="px-3 py-2 text-right font-semibold text-gray-700">Eventos</th></tr></thead>
+                                    <tbody id="tablaMensualResumen"></tbody>
+                                </table>
+                            </div>
+                        </div>
                         <div class="bg-white rounded-lg shadow p-4" style="border-left: 4px solid #E46C0A;">
                             <h3 class="text-lg font-bold text-gray-800 mb-3">Duracion de Eventos</h3>
                             <div id="duracion-stats" class="grid grid-cols-2 gap-2"></div>
-                        </div>
-                    </div>
-                    <div class="bg-white rounded-lg shadow p-5" style="border-left: 4px solid #7030A0;">
-                        <h3 class="text-lg font-bold text-gray-800 mb-3">Actividad Mensual</h3>
-                        <div class="overflow-y-auto op-mensual-scroll" style="max-height: 280px;">
-                            <table class="w-full text-sm">
-                                <thead class="bg-gray-100 sticky top-0"><tr><th class="px-3 py-2 text-left font-semibold text-gray-700">Mes</th><th class="px-3 py-2 text-right font-semibold text-gray-700">Eventos</th></tr></thead>
-                                <tbody id="tablaMensualResumen"></tbody>
-                            </table>
                         </div>
                     </div>
                     <div class="space-y-4 op-mini-charts">
@@ -415,6 +421,12 @@
 
             // Top 5 Modalidades
             const mc = {}; DATA.forEach(r => { mc[r.MODALIDAD] = (mc[r.MODALIDAD]||0) + (r.CONT_EVENTO||0); });
+
+            // Bottom 5 Jueces (menos nombramientos)
+            const bottom5 = Object.entries(nc).sort((a,b) => a[1]-b[1]).slice(0,5);
+            const mxB = Math.max(...bottom5.map(x => x[1]));
+            const orangeColors = ['#E46C0A','#f08c3a','#f5a55a','#f8be7a','#fbd79a'];
+            document.getElementById('bottom5-jueces').innerHTML = bottom5.map(([n,c],i) => `<div><div class="flex justify-between items-center mb-1"><span class="font-semibold text-gray-700">${i+1}. ${n}</span><span class="text-sm font-bold" style="color:#E46C0A;">${c} eventos</span></div><div class="w-full bg-gray-200 rounded-full h-3"><div class="h-3 rounded-full" style="width:${c/mxB*100}%;background:${orangeColors[i]};"></div></div></div>`).join('');
             const topM = Object.entries(mc).sort((a,b) => b[1]-a[1]).slice(0,5);
             const mxM = topM.length > 0 ? Math.max(...topM.map(x => x[1])) : 1;
             document.getElementById('modalidades-top').innerHTML = topM.map(([m,c]) => `<div><div class="flex justify-between items-center mb-1"><span class="text-sm font-medium text-gray-700">${m}</span><span class="text-xs font-bold" style="color:#558000;">${c}</span></div><div class="w-full bg-gray-200 rounded-full h-2"><div class="h-2 rounded-full" style="width:${c/mxM*100}%;background:#CCFF33;"></div></div></div>`).join('');
