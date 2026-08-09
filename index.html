@@ -426,7 +426,7 @@
             const nomC = {}; DATA.forEach(r => { nomC[r.NOMBRE] = (nomC[r.NOMBRE]||0)+1; });
             const topN = Object.entries(nomC).sort((a,b)=>b[1]-a[1]).slice(0,10);
 
-            if (!miniChartDuracion) { miniChartDuracion = new Chart(document.getElementById('miniChartDuracion'), {type:'pie',data:{labels:dL,datasets:[{data:dV,backgroundColor:['#E46C0A','#1F497D','#7030A0','#00B0F0']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:9},boxWidth:10}}}}}); }
+            if (!miniChartDuracion) { miniChartDuracion = new Chart(document.getElementById('miniChartDuracion'), {type:'pie',data:{labels:dL,datasets:[{data:dV,backgroundColor:['#FF00FF','#CC00CC','#990099','#660066']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:9},boxWidth:10}}}}}); }
             else { miniChartDuracion.data.labels=dL; miniChartDuracion.data.datasets[0].data=dV; miniChartDuracion.update(); }
             if (!miniChartNombres) { miniChartNombres = new Chart(document.getElementById('miniChartNombres'), {type:'bar',data:{labels:topN.map(x=>x[0]),datasets:[{data:topN.map(x=>x[1]),backgroundColor:'#4F81BD'}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{font:{size:9}}},y:{ticks:{font:{size:9}}}}}}); }
             else { miniChartNombres.data.labels=topN.map(x=>x[0]); miniChartNombres.data.datasets[0].data=topN.map(x=>x[1]); miniChartNombres.update(); }
@@ -497,7 +497,7 @@
 
             chartModalidad=new Chart(document.getElementById('chartModalidad'),{type:'bar',data:{labels:topMod.map(x=>x[0]),datasets:[{label:'Nombramientos',data:topMod.map(x=>x[1]),backgroundColor:chartColors[0]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
             chartStatus=new Chart(document.getElementById('chartStatus'),{type:'doughnut',data:{labels:Object.keys(stC),datasets:[{data:Object.values(stC),backgroundColor:[chartColors[2],chartColors[3],chartColors[1],chartColors[6]]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}});
-            chartDuracion=new Chart(document.getElementById('chartDuracion'),{type:'pie',data:{labels:dL,datasets:[{data:dV,backgroundColor:[chartColors[1],chartColors[0],chartColors[5],chartColors[3]]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}});
+            chartDuracion=new Chart(document.getElementById('chartDuracion'),{type:'pie',data:{labels:dL,datasets:[{data:dV,backgroundColor:['#FF00FF','#CC00CC','#990099','#660066']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}});
             chartPersonasDias=new Chart(document.getElementById('chartPersonasDias'),{type:'bar',data:{labels:topPD.map(x=>x[0]),datasets:[{label:'Dias totales',data:topPD.map(x=>x[1]),backgroundColor:chartColors[4]}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}});
             chartNombres=new Chart(document.getElementById('chartNombres'),{type:'bar',data:{labels:topNom.map(x=>x[0]),datasets:[{label:'Nombramientos',data:topNom.map(x=>x[1]),backgroundColor:chartColors[6]}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}});
         }
