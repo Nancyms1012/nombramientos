@@ -537,7 +537,7 @@
             const modC={},durC={},nomC={},pdC={},rolC={};
             DATA.forEach(r=>{
                 modC[r.MODALIDAD]=(modC[r.MODALIDAD]||0)+(r.CONT_EVENTO||0);
-                durC[r.CLAS_DURAC]=(durC[r.CLAS_DURAC]||0)+1;
+                durC[r.CLAS_DURAC]=(durC[r.CLAS_DURAC]||0)+(r.CONT_EVENTO||0);
                 nomC[r.NOMBRE]=(nomC[r.NOMBRE]||0)+(r.CONTADOR||0);
                 pdC[r.NOMBRE]=(pdC[r.NOMBRE]||0)+(r.DURACION||0);
                 rolC[r.ROL_ASIGNADO]=(rolC[r.ROL_ASIGNADO]||0)+(r.CONT_EVENTO||0);
