@@ -146,7 +146,7 @@
 
                 <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 op-lower">
                     <div class="bg-white rounded-lg shadow p-5" style="border-left: 4px solid #4F81BD;">
-                        <h3 class="text-lg font-bold text-gray-800 mb-3">Top 5 Jueces Mas Activos</h3>
+                        <h3 class="text-lg font-bold text-gray-800 mb-3">Top 10 Jueces Mas Activos</h3>
                         <div id="top5-jueces" class="space-y-2"></div>
                     </div>
                     <div class="space-y-4">
@@ -173,9 +173,9 @@
                             <h3 class="text-sm font-bold text-gray-800 mb-2">Duracion (dias)</h3>
                             <div class="mini-chart-container"><canvas id="miniChartDuracion"></canvas></div>
                         </div>
-                        <div class="bg-white rounded-lg shadow p-4" style="border-left: 4px solid #00B0F0;">
-                            <h3 class="text-sm font-bold text-gray-800 mb-2">Top 10 Jueces</h3>
-                            <div class="mini-chart-container"><canvas id="miniChartNombres"></canvas></div>
+                        <div class="bg-white rounded-lg shadow p-4" style="border-left: 4px solid #00FFFF;">
+                            <h3 class="text-sm font-bold text-gray-800 mb-2">Top 5 Roles</h3>
+                            <div id="roles-top" class="space-y-2"></div>
                         </div>
                     </div>
                 </div>
@@ -313,7 +313,7 @@
         const chartColors = ['#1F497D', '#00B0F0', '#7030A0', '#E46C0A', '#CCFF33', '#FF00FF', '#4F81BD', '#558000'];
         let currentPage = 1, pageSize = 50, filteredData = [], customChartInstance = null;
         let chartModalidad, chartStatus, chartDuracion, chartPersonasDias, chartNombres;
-        let miniChartDuracion, miniChartNombres;
+        let miniChartDuracion;
         let chartsInitialized = false;
 
         let sortStateNombreMes = { column: 'total', direction: 'desc' };
@@ -396,9 +396,9 @@
 
             // Top 5 Jueces
             const nc = {}; DATA.forEach(r => { nc[r.NOMBRE] = (nc[r.NOMBRE]||0) + (r.CONTADOR||0); });
-            const top5 = Object.entries(nc).sort((a,b) => b[1]-a[1]).slice(0,5);
+            const top5 = Object.entries(nc).sort((a,b) => b[1]-a[1]).slice(0,10);
             const mx = Math.max(...top5.map(x => x[1]));
-            const colors = ['#1F497D','#4F81BD','#7BA1CC','#9FBFDD','#C0D8EE'];
+            const colors = ['#1F497D','#2a5a8f','#3569a1','#4F81BD','#6a97cc','#7BA1CC','#8db4d8','#9FBFDD','#b0cce5','#C0D8EE'];
             document.getElementById('top5-jueces').innerHTML = top5.map(([n,c],i) => `<div><div class="flex justify-between items-center mb-1"><span class="font-semibold text-gray-700">${i+1}. ${n}</span><span class="text-sm font-bold" style="color:#1F497D;">${c} eventos</span></div><div class="w-full bg-gray-200 rounded-full h-3"><div class="h-3 rounded-full" style="width:${c/mx*100}%;background:${colors[i]};"></div></div></div>`).join('');
 
             // Top 5 Modalidades
@@ -423,13 +423,19 @@
             const durC = {}; DATA.forEach(r => { durC[r.CLAS_DURAC] = (durC[r.CLAS_DURAC]||0)+1; });
             const dOrd = ['1 día','2 días','3 días','4 días o más'];
             const dL = dOrd.filter(d=>durC[d]), dV = dL.map(d=>durC[d]);
-            const nomC = {}; DATA.forEach(r => { nomC[r.NOMBRE] = (nomC[r.NOMBRE]||0)+1; });
-            const topN = Object.entries(nomC).sort((a,b)=>b[1]-a[1]).slice(0,10);
 
             if (!miniChartDuracion) { miniChartDuracion = new Chart(document.getElementById('miniChartDuracion'), {type:'pie',data:{labels:dL,datasets:[{data:dV,backgroundColor:['#FF00FF','#CC00CC','#990099','#660066']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:9},boxWidth:10}}}}}); }
             else { miniChartDuracion.data.labels=dL; miniChartDuracion.data.datasets[0].data=dV; miniChartDuracion.update(); }
-            if (!miniChartNombres) { miniChartNombres = new Chart(document.getElementById('miniChartNombres'), {type:'bar',data:{labels:topN.map(x=>x[0]),datasets:[{data:topN.map(x=>x[1]),backgroundColor:'#4F81BD'}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{font:{size:9}}},y:{ticks:{font:{size:9}}}}}}); }
-            else { miniChartNombres.data.labels=topN.map(x=>x[0]); miniChartNombres.data.datasets[0].data=topN.map(x=>x[1]); miniChartNombres.update(); }
+
+            // Top 5 Roles
+            const rc = {}; DATA.forEach(r => { rc[r.ROL_ASIGNADO] = (rc[r.ROL_ASIGNADO]||0) + (r.CONT_EVENTO||0); });
+            const topRoles = Object.entries(rc).sort((a,b) => b[1]-a[1]).slice(0,5);
+            const mxR = topRoles.length > 0 ? Math.max(...topRoles.map(x => x[1])) : 1;
+            const cyanColors = ['#00FFFF','#00CCCC','#009999','#006666','#004444'];
+            document.getElementById('roles-top').innerHTML = topRoles.map(([rol, count], idx) => {
+                const pct = (count / mxR * 100);
+                return `<div><div class="flex justify-between items-center mb-1"><span class="text-sm font-medium text-gray-700">${rol}</span><span class="text-xs font-bold" style="color:#006666;">${count}</span></div><div class="w-full bg-gray-200 rounded-full h-2"><div class="h-2 rounded-full" style="width:${pct}%;background:${cyanColors[idx]};"></div></div></div>`;
+            }).join('');
         }
 
 
