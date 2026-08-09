@@ -58,14 +58,14 @@
 <body class="bg-gray-50 onepager-mode">
     <div id="toast" class="toast"></div>
     
-    <div class="container mx-auto px-4 py-8 max-w-full op-container">
-        <div class="rounded-lg shadow-lg p-8 mb-6 text-white op-header" style="background: linear-gradient(to right, #1F497D, #162f54);">
-            <h1 class="text-4xl font-bold mb-2">Dashboard AJUCI</h1>
-            <p class="text-xl opacity-90">Nombramientos de Jueces de Ciclismo</p>
-            <p class="text-sm opacity-75 mt-2">Generado: <span id="headerFecha">--</span> | <span id="headerCount">Cargando...</span> nombramientos</p>
+    <div class="container mx-auto px-4 py-2 max-w-full op-container">
+        <div class="rounded-lg shadow-lg p-4 mb-3 text-white op-header" style="background: linear-gradient(to right, #1F497D, #162f54);">
+            <h1 class="text-2xl font-bold mb-1">Dashboard AJUCI</h1>
+            <p class="text-sm opacity-90">Nombramientos de Jueces de Ciclismo</p>
+            <p class="text-xs opacity-75 mt-1">Generado: <span id="headerFecha">--</span> | <span id="headerCount">Cargando...</span> nombramientos</p>
         </div>
 
-        <div class="bg-white rounded-lg shadow p-6 mb-8 op-filters">
+        <div class="bg-white rounded-lg shadow p-3 mb-3 op-filters">
             <div class="flex items-center gap-4 flex-wrap">
                 <label class="font-medium text-gray-700">Filtrar por:</label>
                 <select id="filterAnio" class="px-4 py-2 border border-gray-300 rounded-lg" onchange="applyFilters()">
@@ -91,7 +91,7 @@
         </div>
 
 
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 op-kpis">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3 op-kpis">
             <div class="bg-white rounded-lg shadow p-6" style="border-left: 4px solid #1F497D;">
                 <div class="text-gray-500 text-sm font-semibold mb-1">Total Nombramientos</div>
                 <div class="text-3xl font-bold text-gray-800" id="kpi-total">--</div>
@@ -111,7 +111,7 @@
             </div>
         </div>
 
-        <div class="bg-white rounded-lg shadow mb-6 op-tabs-wrapper">
+        <div class="bg-white rounded-lg shadow mb-3 op-tabs-wrapper">
             <div class="border-b flex overflow-x-auto">
                 <button onclick="showMainTab('resumen')" id="main-tab-resumen" class="px-8 py-4 font-semibold text-blue-600 border-b-3 border-blue-600">Resumen Ejecutivo</button>
                 <button onclick="showMainTab('graficas')" id="main-tab-graficas" class="px-8 py-4 font-semibold text-gray-500">Graficas</button>
