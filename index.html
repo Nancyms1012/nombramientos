@@ -190,18 +190,18 @@
 
             <!-- TAB 1: GRAFICAS -->
             <div id="panel-graficas" class="p-3" style="display:none;">
+                <div class="grid grid-cols-1 gap-3 mb-3">
+                    <div class="bg-white rounded-lg shadow p-3"><h2 class="text-xs font-bold text-gray-800 mb-1">Tendencia Mensual de Eventos</h2><div style="height:150px;"><canvas id="chartTendencia"></canvas></div></div>
+                </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
                     <div class="bg-white rounded-lg shadow p-3"><h2 class="text-xs font-bold text-gray-800 mb-1">Nombramientos por Modalidad</h2><div style="height:200px;"><canvas id="chartModalidad"></canvas></div></div>
                     <div class="bg-white rounded-lg shadow p-3"><h2 class="text-xs font-bold text-gray-800 mb-1">Top 10 Roles</h2><div style="height:200px;"><canvas id="chartRoles"></canvas></div></div>
                     <div class="bg-white rounded-lg shadow p-3"><h2 class="text-xs font-bold text-gray-800 mb-1">Duracion de Eventos</h2><div style="height:200px;"><canvas id="chartDuracion"></canvas></div></div>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div class="bg-white rounded-lg shadow p-3"><h2 class="text-xs font-bold text-gray-800 mb-1">Top 10 Jueces por Dias Acumulados</h2><div style="height:200px;"><canvas id="chartPersonasDias"></canvas></div></div>
                     <div class="bg-white rounded-lg shadow p-3"><h2 class="text-xs font-bold text-gray-800 mb-1">Top 10 Jueces con Mas Nombramientos</h2><div style="height:200px;"><canvas id="chartNombres"></canvas></div></div>
                     <div class="bg-white rounded-lg shadow p-3"><h2 class="text-xs font-bold text-gray-800 mb-1">Bottom 10 Menos Nombramientos</h2><div style="height:200px;"><canvas id="chartBottom"></canvas></div></div>
-                </div>
-                <div class="grid grid-cols-1 gap-3">
-                    <div class="bg-white rounded-lg shadow p-3"><h2 class="text-xs font-bold text-gray-800 mb-1">Tendencia Mensual de Eventos</h2><div style="height:150px;"><canvas id="chartTendencia"></canvas></div></div>
                 </div>
             </div>
 
@@ -538,13 +538,13 @@
             DATA.forEach(r=>{
                 modC[r.MODALIDAD]=(modC[r.MODALIDAD]||0)+(r.CONT_EVENTO||0);
                 durC[r.CLAS_DURAC]=(durC[r.CLAS_DURAC]||0)+1;
-                nomC[r.NOMBRE]=(nomC[r.NOMBRE]||0)+1;
+                nomC[r.NOMBRE]=(nomC[r.NOMBRE]||0)+(r.CONTADOR||0);
                 pdC[r.NOMBRE]=(pdC[r.NOMBRE]||0)+(r.DURACION||0);
                 rolC[r.ROL_ASIGNADO]=(rolC[r.ROL_ASIGNADO]||0)+(r.CONT_EVENTO||0);
             });
             const topMod=Object.entries(modC).sort((a,b)=>b[1]-a[1]).slice(0,5);
             const topNom=Object.entries(nomC).sort((a,b)=>b[1]-a[1]).slice(0,10);
-            const botNom=Object.entries(nomC).sort((a,b)=>a[1]-b[1]).slice(0,10);
+            const botNom=Object.entries(nomC).sort((a,b)=>a[1]-b[1]).filter(([,v])=>v>0).slice(0,10);
             const topPD=Object.entries(pdC).sort((a,b)=>b[1]-a[1]).slice(0,10);
             const topRol=Object.entries(rolC).sort((a,b)=>b[1]-a[1]).slice(0,10);
             const totalMod=topMod.reduce((s,[,c])=>s+c,0);
