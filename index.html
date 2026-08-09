@@ -18,8 +18,8 @@
         .data-table td { padding: 10px; border-bottom: 1px solid #e5e7eb; }
         .data-table tr:hover { background: #f9fafb; }
         .pivot-table { font-size: 0.875rem; }
-        .pivot-table th { background: #0053e2; color: white; padding: 8px; text-align: center; cursor: pointer; user-select: none; position: relative; }
-        .pivot-table th:hover { background: #003d99; }
+        .pivot-table th { background: #1F497D; color: white; padding: 8px; text-align: center; cursor: pointer; user-select: none; position: relative; }
+        .pivot-table th:hover { background: #162f54; }
         .pivot-table th.sortable:after { content: ' ⇅'; opacity: 0.5; }
         .pivot-table th.sorted-asc:after { content: ' ↑'; opacity: 1; }
         .pivot-table th.sorted-desc:after { content: ' ↓'; opacity: 1; }
@@ -59,7 +59,7 @@
     <div id="toast" class="toast"></div>
     
     <div class="container mx-auto px-4 py-8 max-w-7xl op-container">
-        <div class="bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg shadow-lg p-8 mb-6 text-white op-header">
+        <div class="rounded-lg shadow-lg p-8 mb-6 text-white op-header" style="background: linear-gradient(to right, #1F497D, #162f54);">
             <h1 class="text-4xl font-bold mb-2">Dashboard AJUCI</h1>
             <p class="text-xl opacity-90">Nombramientos de Jueces de Ciclismo</p>
             <p class="text-sm opacity-75 mt-2">Generado: <span id="headerFecha">--</span> | <span id="headerCount">Cargando...</span> nombramientos</p>
@@ -92,19 +92,19 @@
 
 
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 op-kpis">
-            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-blue-600">
+            <div class="bg-white rounded-lg shadow p-6" style="border-left: 4px solid #1F497D;">
                 <div class="text-gray-500 text-sm font-semibold mb-1">Total Nombramientos</div>
                 <div class="text-3xl font-bold text-gray-800" id="kpi-total">--</div>
             </div>
-            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-green-600">
+            <div class="bg-white rounded-lg shadow p-6" style="border-left: 4px solid #00B0F0;">
                 <div class="text-gray-500 text-sm font-semibold mb-1">Eventos Unicos</div>
                 <div class="text-3xl font-bold text-gray-800" id="kpi-eventos">--</div>
             </div>
-            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-yellow-500">
+            <div class="bg-white rounded-lg shadow p-6" style="border-left: 4px solid #7030A0;">
                 <div class="text-gray-500 text-sm font-semibold mb-1">Jueces Activos</div>
                 <div class="text-3xl font-bold text-gray-800" id="kpi-personas">--</div>
             </div>
-            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-purple-600">
+            <div class="bg-white rounded-lg shadow p-6" style="border-left: 4px solid #E46C0A;">
                 <div class="text-gray-500 text-sm font-semibold mb-1">Tasa Realizacion</div>
                 <div class="text-3xl font-bold text-gray-800" id="kpi-tasa">--</div>
                 <div class="text-xs text-gray-400 mt-1" id="kpi-realizados"></div>
@@ -122,44 +122,44 @@
             <!-- TAB 0: RESUMEN EJECUTIVO -->
             <div id="panel-resumen" class="p-6">
                 <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6 op-hero">
-                    <div class="bg-gradient-to-br from-blue-500 to-blue-700 rounded-lg shadow p-4 text-white text-center">
+                    <div class="rounded-lg shadow p-4 text-white text-center" style="background: linear-gradient(to bottom right, #4F81BD, #3a6291);">
                         <div class="text-4xl font-bold mb-1" id="hero-total">0</div>
                         <div class="text-xs uppercase tracking-wide opacity-90">Nombramientos</div>
                     </div>
-                    <div class="bg-gradient-to-br from-green-500 to-green-700 rounded-lg shadow p-4 text-white text-center">
+                    <div class="rounded-lg shadow p-4 text-white text-center" style="background: linear-gradient(to bottom right, #00B0F0, #0088bb);">
                         <div class="text-4xl font-bold mb-1" id="hero-eventos">0</div>
                         <div class="text-xs uppercase tracking-wide opacity-90">Eventos</div>
                     </div>
-                    <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg shadow p-4 text-white text-center">
+                    <div class="rounded-lg shadow p-4 text-white text-center" style="background: linear-gradient(to bottom right, #7030A0, #521f78);">
                         <div class="text-4xl font-bold mb-1" id="hero-jueces">0</div>
                         <div class="text-xs uppercase tracking-wide opacity-90">Jueces</div>
                     </div>
-                    <div class="bg-gradient-to-br from-purple-500 to-purple-700 rounded-lg shadow p-4 text-white text-center">
+                    <div class="rounded-lg shadow p-4 text-white text-center" style="background: linear-gradient(to bottom right, #E46C0A, #b85508);">
                         <div class="text-4xl font-bold mb-1" id="hero-tasa">0%</div>
                         <div class="text-xs uppercase tracking-wide opacity-90">Cumplimiento</div>
                     </div>
-                    <div class="bg-gradient-to-br from-orange-500 to-orange-700 rounded-lg shadow p-4 text-white text-center">
+                    <div class="rounded-lg shadow p-4 text-white text-center" style="background: linear-gradient(to bottom right, #FF00FF, #cc00cc);">
                         <div class="text-4xl font-bold mb-1" id="hero-modalidades">0</div>
                         <div class="text-xs uppercase tracking-wide opacity-90">Modalidades</div>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 op-lower">
-                    <div class="bg-white rounded-lg shadow p-5 border-l-4 border-blue-600">
+                    <div class="bg-white rounded-lg shadow p-5" style="border-left: 4px solid #4F81BD;">
                         <h3 class="text-lg font-bold text-gray-800 mb-3">Top 5 Jueces Mas Activos</h3>
                         <div id="top5-jueces" class="space-y-2"></div>
                     </div>
                     <div class="space-y-4">
-                        <div class="bg-white rounded-lg shadow p-5 border-l-4 border-green-600">
+                        <div class="bg-white rounded-lg shadow p-5" style="border-left: 4px solid #CCFF33;">
                             <h3 class="text-lg font-bold text-gray-800 mb-3">Top 5 Modalidades</h3>
                             <div id="modalidades-top" class="space-y-2"></div>
                         </div>
-                        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-yellow-600">
+                        <div class="bg-white rounded-lg shadow p-4" style="border-left: 4px solid #E46C0A;">
                             <h3 class="text-lg font-bold text-gray-800 mb-3">Duracion de Eventos</h3>
                             <div id="duracion-stats" class="grid grid-cols-2 gap-2"></div>
                         </div>
                     </div>
-                    <div class="bg-white rounded-lg shadow p-5 border-l-4 border-indigo-600">
+                    <div class="bg-white rounded-lg shadow p-5" style="border-left: 4px solid #7030A0;">
                         <h3 class="text-lg font-bold text-gray-800 mb-3">Actividad Mensual</h3>
                         <div class="overflow-y-auto op-mensual-scroll" style="max-height: 280px;">
                             <table class="w-full text-sm">
@@ -169,11 +169,11 @@
                         </div>
                     </div>
                     <div class="space-y-4 op-mini-charts">
-                        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-pink-600">
+                        <div class="bg-white rounded-lg shadow p-4" style="border-left: 4px solid #FF00FF;">
                             <h3 class="text-sm font-bold text-gray-800 mb-2">Duracion (dias)</h3>
                             <div class="mini-chart-container"><canvas id="miniChartDuracion"></canvas></div>
                         </div>
-                        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-orange-600">
+                        <div class="bg-white rounded-lg shadow p-4" style="border-left: 4px solid #00B0F0;">
                             <h3 class="text-sm font-bold text-gray-800 mb-2">Top 10 Jueces</h3>
                             <div class="mini-chart-container"><canvas id="miniChartNombres"></canvas></div>
                         </div>
@@ -310,7 +310,7 @@
         const COLUMNS = { names: EXPECTED_COLUMNS, types: {} };
         let DATA = [];
 
-        const chartColors = ['#0053e2', '#ffc220', '#2a8703', '#00a3e0', '#76c043', '#6b21a8', '#ea580c', '#0891b2'];
+        const chartColors = ['#1F497D', '#00B0F0', '#7030A0', '#E46C0A', '#CCFF33', '#FF00FF', '#4F81BD', '#558000'];
         let currentPage = 1, pageSize = 50, filteredData = [], customChartInstance = null;
         let chartModalidad, chartStatus, chartDuracion, chartPersonasDias, chartNombres;
         let miniChartDuracion, miniChartNombres;
@@ -398,19 +398,19 @@
             const nc = {}; DATA.forEach(r => { nc[r.NOMBRE] = (nc[r.NOMBRE]||0) + (r.CONTADOR||0); });
             const top5 = Object.entries(nc).sort((a,b) => b[1]-a[1]).slice(0,5);
             const mx = Math.max(...top5.map(x => x[1]));
-            const colors = ['bg-blue-600','bg-blue-500','bg-blue-400','bg-blue-300','bg-blue-200'];
-            document.getElementById('top5-jueces').innerHTML = top5.map(([n,c],i) => `<div><div class="flex justify-between items-center mb-1"><span class="font-semibold text-gray-700">${i+1}. ${n}</span><span class="text-sm font-bold text-blue-600">${c} eventos</span></div><div class="w-full bg-gray-200 rounded-full h-3"><div class="${colors[i]} h-3 rounded-full" style="width:${c/mx*100}%"></div></div></div>`).join('');
+            const colors = ['#1F497D','#4F81BD','#7BA1CC','#9FBFDD','#C0D8EE'];
+            document.getElementById('top5-jueces').innerHTML = top5.map(([n,c],i) => `<div><div class="flex justify-between items-center mb-1"><span class="font-semibold text-gray-700">${i+1}. ${n}</span><span class="text-sm font-bold" style="color:#1F497D;">${c} eventos</span></div><div class="w-full bg-gray-200 rounded-full h-3"><div class="h-3 rounded-full" style="width:${c/mx*100}%;background:${colors[i]};"></div></div></div>`).join('');
 
             // Top 5 Modalidades
             const mc = {}; DATA.forEach(r => { mc[r.MODALIDAD] = (mc[r.MODALIDAD]||0) + (r.CONT_EVENTO||0); });
             const topM = Object.entries(mc).sort((a,b) => b[1]-a[1]).slice(0,5);
             const mxM = topM.length > 0 ? Math.max(...topM.map(x => x[1])) : 1;
-            document.getElementById('modalidades-top').innerHTML = topM.map(([m,c]) => `<div><div class="flex justify-between items-center mb-1"><span class="text-sm font-medium text-gray-700">${m}</span><span class="text-xs font-bold text-green-600">${c}</span></div><div class="w-full bg-gray-200 rounded-full h-2"><div class="bg-green-600 h-2 rounded-full" style="width:${c/mxM*100}%"></div></div></div>`).join('');
+            document.getElementById('modalidades-top').innerHTML = topM.map(([m,c]) => `<div><div class="flex justify-between items-center mb-1"><span class="text-sm font-medium text-gray-700">${m}</span><span class="text-xs font-bold" style="color:#558000;">${c}</span></div><div class="w-full bg-gray-200 rounded-full h-2"><div class="h-2 rounded-full" style="width:${c/mxM*100}%;background:#CCFF33;"></div></div></div>`).join('');
 
             // Duracion Stats
             const de = {}, ec = new Set();
             DATA.forEach(r => { if (!ec.has(r.NOMBRE_EVENTO)) { ec.add(r.NOMBRE_EVENTO); de[r.CLAS_DURAC] = (de[r.CLAS_DURAC]||0) + (r.CONT_EVENTO||0); } });
-            document.getElementById('duracion-stats').innerHTML = ['1 día','2 días','3 días','4 días o más'].filter(d => de[d]).map(d => `<div class="bg-yellow-50 rounded-lg p-3 text-center border border-yellow-200"><div class="text-xl font-bold text-yellow-700">${de[d]||0}</div><div class="text-xs text-gray-600 mt-1">${d}</div></div>`).join('');
+            document.getElementById('duracion-stats').innerHTML = ['1 día','2 días','3 días','4 días o más'].filter(d => de[d]).map(d => `<div class="rounded-lg p-3 text-center border" style="background:#fff3e0;border-color:#E46C0A;"><div class="text-xl font-bold" style="color:#E46C0A;">${de[d]||0}</div><div class="text-xs text-gray-600 mt-1">${d}</div></div>`).join('');
 
             // Tabla Mensual
             const me = {}; DATA.forEach(r => { me[r.MES] = (me[r.MES]||0) + (r.CONT_EVENTO||0); });
@@ -426,9 +426,9 @@
             const nomC = {}; DATA.forEach(r => { nomC[r.NOMBRE] = (nomC[r.NOMBRE]||0)+1; });
             const topN = Object.entries(nomC).sort((a,b)=>b[1]-a[1]).slice(0,10);
 
-            if (!miniChartDuracion) { miniChartDuracion = new Chart(document.getElementById('miniChartDuracion'), {type:'pie',data:{labels:dL,datasets:[{data:dV,backgroundColor:['#ffc220','#0053e2','#6b21a8','#00a3e0']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:9},boxWidth:10}}}}}); }
+            if (!miniChartDuracion) { miniChartDuracion = new Chart(document.getElementById('miniChartDuracion'), {type:'pie',data:{labels:dL,datasets:[{data:dV,backgroundColor:['#E46C0A','#1F497D','#7030A0','#00B0F0']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:9},boxWidth:10}}}}}); }
             else { miniChartDuracion.data.labels=dL; miniChartDuracion.data.datasets[0].data=dV; miniChartDuracion.update(); }
-            if (!miniChartNombres) { miniChartNombres = new Chart(document.getElementById('miniChartNombres'), {type:'bar',data:{labels:topN.map(x=>x[0]),datasets:[{data:topN.map(x=>x[1]),backgroundColor:'#ea580c'}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{font:{size:9}}},y:{ticks:{font:{size:9}}}}}}); }
+            if (!miniChartNombres) { miniChartNombres = new Chart(document.getElementById('miniChartNombres'), {type:'bar',data:{labels:topN.map(x=>x[0]),datasets:[{data:topN.map(x=>x[1]),backgroundColor:'#4F81BD'}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{font:{size:9}}},y:{ticks:{font:{size:9}}}}}}); }
             else { miniChartNombres.data.labels=topN.map(x=>x[0]); miniChartNombres.data.datasets[0].data=topN.map(x=>x[1]); miniChartNombres.update(); }
         }
 
