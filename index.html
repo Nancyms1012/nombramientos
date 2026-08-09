@@ -532,23 +532,31 @@
         // === CHARTS ===
         function initCharts() {
             const modC={},durC={},nomC={},pdC={},rolC={};
-            DATA.forEach(r=>{modC[r.MODALIDAD]=(modC[r.MODALIDAD]||0)+1;durC[r.CLAS_DURAC]=(durC[r.CLAS_DURAC]||0)+1;nomC[r.NOMBRE]=(nomC[r.NOMBRE]||0)+1;pdC[r.NOMBRE]=(pdC[r.NOMBRE]||0)+(r.DURACION||0);rolC[r.ROL_ASIGNADO]=(rolC[r.ROL_ASIGNADO]||0)+1;});
+            DATA.forEach(r=>{
+                modC[r.MODALIDAD]=(modC[r.MODALIDAD]||0)+(r.CONT_EVENTO||0);
+                durC[r.CLAS_DURAC]=(durC[r.CLAS_DURAC]||0)+1;
+                nomC[r.NOMBRE]=(nomC[r.NOMBRE]||0)+(r.CONTADOR||0);
+                pdC[r.NOMBRE]=(pdC[r.NOMBRE]||0)+(r.DURACION||0);
+                rolC[r.ROL_ASIGNADO]=(rolC[r.ROL_ASIGNADO]||0)+(r.CONT_EVENTO||0);
+            });
             const topMod=Object.entries(modC).sort((a,b)=>b[1]-a[1]).slice(0,10);
             const topNom=Object.entries(nomC).sort((a,b)=>b[1]-a[1]).slice(0,10);
             const botNom=Object.entries(nomC).sort((a,b)=>a[1]-b[1]).slice(0,10);
             const topPD=Object.entries(pdC).sort((a,b)=>b[1]-a[1]).slice(0,10);
             const topRol=Object.entries(rolC).sort((a,b)=>b[1]-a[1]).slice(0,10);
+            const totalMod=topMod.reduce((s,[,c])=>s+c,0);
+            const totalRol=topRol.reduce((s,[,c])=>s+c,0);
             const dOrd=['1 día','2 días','3 días','4 días o más'];
             const dL=[],dV=[];dOrd.forEach(l=>{if(durC[l]){dL.push(l);dV.push(durC[l]);}});
             const totalDur=dV.reduce((a,b)=>a+b,0);
 
             // Modalidad - degradado #003AB3
             const modGrad=topMod.map((_,i)=>{const pct=i/Math.max(topMod.length-1,1);const r=Math.round(0*(1-pct)+0*pct);const g=Math.round(58*(1-pct)+120*pct);const b=Math.round(179*(1-pct)+220*pct);return `rgb(${r},${g},${b})`;});
-            chartModalidad=new Chart(document.getElementById('chartModalidad'),{type:'bar',data:{labels:topMod.map(x=>x[0]),datasets:[{label:'Nombramientos',data:topMod.map(x=>x[1]),backgroundColor:modGrad}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{display:false}},x:{grid:{display:false}}}}});
+            chartModalidad=new Chart(document.getElementById('chartModalidad'),{type:'bar',data:{labels:topMod.map(x=>`${x[0]} (${x[1]})`),datasets:[{label:'Eventos',data:topMod.map(x=>x[1]),backgroundColor:modGrad}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},title:{display:true,text:`Total: ${totalMod}`,font:{size:11},padding:2}},scales:{y:{beginAtZero:true,grid:{display:false}},x:{grid:{display:false}}}}});
 
             // Roles - degradado #6600CC
             const rolGrad=topRol.map((_,i)=>{const pct=i/Math.max(topRol.length-1,1);const r=Math.round(102*(1-pct)+160*pct);const g=Math.round(0*(1-pct)+80*pct);const b=Math.round(204*(1-pct)+230*pct);return `rgb(${r},${g},${b})`;});
-            chartRoles=new Chart(document.getElementById('chartRoles'),{type:'bar',data:{labels:topRol.map(x=>x[0]),datasets:[{label:'Nombramientos',data:topRol.map(x=>x[1]),backgroundColor:rolGrad}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,grid:{display:false}},y:{grid:{display:false}}}}});
+            chartRoles=new Chart(document.getElementById('chartRoles'),{type:'bar',data:{labels:topRol.map(x=>`${x[0]} (${x[1]})`),datasets:[{label:'Eventos',data:topRol.map(x=>x[1]),backgroundColor:rolGrad}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},title:{display:true,text:`Total: ${totalRol}`,font:{size:11},padding:2}},scales:{x:{beginAtZero:true,grid:{display:false}},y:{grid:{display:false}}}}});
 
             // Duracion pie con %
             chartDuracion=new Chart(document.getElementById('chartDuracion'),{type:'pie',data:{labels:dL.map((l,i)=>`${l} (${(dV[i]/totalDur*100).toFixed(1)}%)`),datasets:[{data:dV,backgroundColor:['#FF00FF','#CC00CC','#990099','#660066']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10}}}}}});
@@ -565,7 +573,13 @@
 
         function updateCharts() {
             const modC={},durC={},nomC={},pdC={},rolC={};
-            DATA.forEach(r=>{modC[r.MODALIDAD]=(modC[r.MODALIDAD]||0)+1;durC[r.CLAS_DURAC]=(durC[r.CLAS_DURAC]||0)+1;nomC[r.NOMBRE]=(nomC[r.NOMBRE]||0)+1;pdC[r.NOMBRE]=(pdC[r.NOMBRE]||0)+(r.DURACION||0);rolC[r.ROL_ASIGNADO]=(rolC[r.ROL_ASIGNADO]||0)+1;});
+            DATA.forEach(r=>{
+                modC[r.MODALIDAD]=(modC[r.MODALIDAD]||0)+(r.CONT_EVENTO||0);
+                durC[r.CLAS_DURAC]=(durC[r.CLAS_DURAC]||0)+1;
+                nomC[r.NOMBRE]=(nomC[r.NOMBRE]||0)+(r.CONTADOR||0);
+                pdC[r.NOMBRE]=(pdC[r.NOMBRE]||0)+(r.DURACION||0);
+                rolC[r.ROL_ASIGNADO]=(rolC[r.ROL_ASIGNADO]||0)+(r.CONT_EVENTO||0);
+            });
             const topMod=Object.entries(modC).sort((a,b)=>b[1]-a[1]).slice(0,10);
             const dOrd=['1 día','2 días','3 días','4 días o más'];const dL=[],dV=[];dOrd.forEach(l=>{if(durC[l]){dL.push(l);dV.push(durC[l]);}});
             const totalDur=dV.reduce((a,b)=>a+b,0);
@@ -573,8 +587,10 @@
             const topNom=Object.entries(nomC).sort((a,b)=>b[1]-a[1]).slice(0,10);
             const botNom=Object.entries(nomC).sort((a,b)=>a[1]-b[1]).slice(0,10);
             const topRol=Object.entries(rolC).sort((a,b)=>b[1]-a[1]).slice(0,10);
-            if(chartModalidad){chartModalidad.data.labels=topMod.map(x=>x[0]);chartModalidad.data.datasets[0].data=topMod.map(x=>x[1]);chartModalidad.update();}
-            if(chartRoles){chartRoles.data.labels=topRol.map(x=>x[0]);chartRoles.data.datasets[0].data=topRol.map(x=>x[1]);chartRoles.update();}
+            const totalMod=topMod.reduce((s,[,c])=>s+c,0);
+            const totalRol=topRol.reduce((s,[,c])=>s+c,0);
+            if(chartModalidad){chartModalidad.data.labels=topMod.map(x=>`${x[0]} (${x[1]})`);chartModalidad.data.datasets[0].data=topMod.map(x=>x[1]);chartModalidad.options.plugins.title.text=`Total: ${totalMod}`;chartModalidad.update();}
+            if(chartRoles){chartRoles.data.labels=topRol.map(x=>`${x[0]} (${x[1]})`);chartRoles.data.datasets[0].data=topRol.map(x=>x[1]);chartRoles.options.plugins.title.text=`Total: ${totalRol}`;chartRoles.update();}
             if(chartDuracion){chartDuracion.data.labels=dL.map((l,i)=>`${l} (${(dV[i]/totalDur*100).toFixed(1)}%)`);chartDuracion.data.datasets[0].data=dV;chartDuracion.update();}
             if(chartPersonasDias){chartPersonasDias.data.labels=topPD.map(x=>x[0]);chartPersonasDias.data.datasets[0].data=topPD.map(x=>x[1]);chartPersonasDias.update();}
             if(chartNombres){chartNombres.data.labels=topNom.map(x=>x[0]);chartNombres.data.datasets[0].data=topNom.map(x=>x[1]);chartNombres.update();}
