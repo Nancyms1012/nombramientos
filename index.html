@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Comisión Disciplinaria AJUCI - Nombramientos</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .chart-container { position: relative; height: 300px; }
+        .mini-chart-container { position: relative; height: 130px; }
+        .toast { position: fixed; top: 20px; right: 20px; padding: 15px 20px; background: #6363CB; color: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: none; z-index: 1000; animation: slideIn 0.3s; }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        .table-responsive { overflow-x: auto; }
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th { background: #f3f4f6; padding: 12px; text-align: left; font-weight: 600; border-bottom: 2px solid #e5e7eb; }
+        .data-table td { padding: 10px; border-bottom: 1px solid #e5e7eb; }
+        .data-table tr:hover { background: #f9fafb; }
+        .pivot-table { font-size: 0.875rem; }
+        .pivot-table th { background: #0053e2; color: white; padding: 8px; text-align: center; cursor: pointer; user-select: none; position: relative; }
+        .pivot-table th:hover { background: #003d99; }
+        .pivot-table th.sortable:after { content: ' ⇅'; opacity: 0.5; }
+        .pivot-table th.sorted-asc:after { content: ' ↑'; opacity: 1; }
+        .pivot-table th.sorted-desc:after { content: ' ↓'; opacity: 1; }
+        .pivot-table td { text-align: center; padding: 6px; }
+
+        body.onepager-mode { overflow: hidden; height: 100vh; }
+        body.onepager-mode .op-container { max-width: 100% !important; padding: 8px 16px !important; }
+        body.onepager-mode .op-header { padding: 10px 20px !important; margin-bottom: 8px !important; }
+        body.onepager-mode .op-header h1 { font-size: 1.4rem !important; margin-bottom: 0 !important; }
+        body.onepager-mode .op-header p.text-xl { font-size: 0.85rem !important; }
+        body.onepager-mode .op-header p.text-sm { font-size: 0.7rem !important; margin-top: 2px !important; }
+        body.onepager-mode .op-filters { padding: 6px 12px !important; margin-bottom: 8px !important; }
+        body.onepager-mode .op-filters select, body.onepager-mode .op-filters button, body.onepager-mode .op-filters label { font-size: 0.8rem !important; padding: 4px 8px !important; }
+        body.onepager-mode .op-kpis { display: none !important; }
+        body.onepager-mode .op-tabs-wrapper { margin-bottom: 8px !important; }
+        body.onepager-mode .op-tabs-wrapper button { padding: 8px 20px !important; font-size: 0.9rem !important; }
+        body.onepager-mode #panel-resumen { padding: 12px !important; }
+        body.onepager-mode .op-hero { margin-bottom: 10px !important; gap: 8px !important; }
+        body.onepager-mode .op-hero > div { padding: 8px !important; }
+        body.onepager-mode .op-hero .text-4xl { font-size: 1.6rem !important; margin-bottom: 0 !important; }
+        body.onepager-mode .op-hero .text-xs { font-size: 0.65rem !important; }
+        body.onepager-mode .op-lower { gap: 10px !important; }
+        body.onepager-mode .op-lower > div, body.onepager-mode .op-lower .space-y-4 > div { padding: 10px !important; }
+        body.onepager-mode .op-lower h3 { font-size: 0.95rem !important; margin-bottom: 6px !important; }
+        body.onepager-mode .op-lower .space-y-4 { gap: 10px !important; }
+        body.onepager-mode .op-mensual-scroll { max-height: none !important; overflow: visible !important; }
+        body.onepager-mode .op-mensual-scroll table { font-size: 0.75rem !important; }
+        body.onepager-mode .op-mensual-scroll th, body.onepager-mode .op-mensual-scroll td { padding: 3px 8px !important; }
+        body.onepager-mode #top5-jueces > div, body.onepager-mode #modalidades-top > div { padding: 4px 6px !important; font-size: 0.8rem !important; }
+        body.onepager-mode #duracion-stats > div { padding: 6px !important; }
+        body.onepager-mode #duracion-stats .text-2xl, body.onepager-mode #duracion-stats .text-3xl { font-size: 1.1rem !important; }
+        body.onepager-mode .op-mini-charts .mini-chart-container { height: 190px !important; }
+        body.onepager-mode .op-mini-charts h3 { font-size: 0.8rem !important; margin-bottom: 4px !important; }
+    </style>
+</head>
+<body class="bg-gray-50 onepager-mode">
+    <div id="toast" class="toast"></div>
+    
+    <div class="container mx-auto px-4 py-8 max-w-7xl op-container">
+        <div class="bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg shadow-lg p-8 mb-6 text-white op-header">
+            <h1 class="text-4xl font-bold mb-2">Dashboard AJUCI</h1>
+            <p class="text-xl opacity-90">Nombramientos de Jueces de Ciclismo</p>
+            <p class="text-sm opacity-75 mt-2">Generado: <span id="headerFecha">--</span> | <span id="headerCount">Cargando...</span> nombramientos</p>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6 mb-8 op-filters">
+            <div class="flex items-center gap-4 flex-wrap">
+                <label class="font-medium text-gray-700">Filtrar por:</label>
+                <select id="filterAnio" class="px-4 py-2 border border-gray-300 rounded-lg" onchange="applyFilters()">
+                    <option value="">Todos los años</option>
+                </select>
+                <select id="filterMes" class="px-4 py-2 border border-gray-300 rounded-lg" onchange="applyFilters()">
+                    <option value="">Todos los meses</option>
+                    <option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option>
+                    <option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option>
+                    <option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option>
+                    <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+                </select>
+                <select id="filterStatus" class="px-4 py-2 border border-gray-300 rounded-lg" onchange="applyFilters()">
+                    <option value="">Todos los status</option>
+                    <option value="Realizado">Realizado</option>
+                    <option value="Cancelado">Cancelado</option>
+                    <option value="Pendiente">Pendiente</option>
+                    <option value="Pospuesto">Pospuesto</option>
+                </select>
+                <button onclick="resetFilters()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-700 font-medium">Limpiar Filtros</button>
+                <div id="filterStatusMsg" class="ml-auto text-sm text-gray-600"></div>
+            </div>
+        </div>
+
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 op-kpis">
+            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-blue-600">
+                <div class="text-gray-500 text-sm font-semibold mb-1">Total Nombramientos</div>
+                <div class="text-3xl font-bold text-gray-800" id="kpi-total">--</div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-green-600">
+                <div class="text-gray-500 text-sm font-semibold mb-1">Eventos Unicos</div>
+                <div class="text-3xl font-bold text-gray-800" id="kpi-eventos">--</div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-yellow-500">
+                <div class="text-gray-500 text-sm font-semibold mb-1">Jueces Activos</div>
+                <div class="text-3xl font-bold text-gray-800" id="kpi-personas">--</div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-purple-600">
+                <div class="text-gray-500 text-sm font-semibold mb-1">Tasa Realizacion</div>
+                <div class="text-3xl font-bold text-gray-800" id="kpi-tasa">--</div>
+                <div class="text-xs text-gray-400 mt-1" id="kpi-realizados"></div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow mb-6 op-tabs-wrapper">
+            <div class="border-b flex overflow-x-auto">
+                <button onclick="showMainTab('resumen')" id="main-tab-resumen" class="px-8 py-4 font-semibold text-blue-600 border-b-3 border-blue-600">Resumen Ejecutivo</button>
+                <button onclick="showMainTab('graficas')" id="main-tab-graficas" class="px-8 py-4 font-semibold text-gray-500">Graficas</button>
+                <button onclick="showMainTab('tablas')" id="main-tab-tablas" class="px-8 py-4 font-semibold text-gray-500">Tablas</button>
+                <button onclick="showMainTab('interactivo')" id="main-tab-interactivo" class="px-8 py-4 font-semibold text-gray-500">Interactivo</button>
+            </div>
+
+            <!-- TAB 0: RESUMEN EJECUTIVO -->
+            <div id="panel-resumen" class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6 op-hero">
+                    <div class="bg-gradient-to-br from-blue-500 to-blue-700 rounded-lg shadow p-4 text-white text-center">
+                        <div class="text-4xl font-bold mb-1" id="hero-total">0</div>
+                        <div class="text-xs uppercase tracking-wide opacity-90">Nombramientos</div>
+                    </div>
+                    <div class="bg-gradient-to-br from-green-500 to-green-700 rounded-lg shadow p-4 text-white text-center">
+                        <div class="text-4xl font-bold mb-1" id="hero-eventos">0</div>
+                        <div class="text-xs uppercase tracking-wide opacity-90">Eventos</div>
+                    </div>
+                    <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg shadow p-4 text-white text-center">
+                        <div class="text-4xl font-bold mb-1" id="hero-jueces">0</div>
+                        <div class="text-xs uppercase tracking-wide opacity-90">Jueces</div>
+                    </div>
+                    <div class="bg-gradient-to-br from-purple-500 to-purple-700 rounded-lg shadow p-4 text-white text-center">
+                        <div class="text-4xl font-bold mb-1" id="hero-tasa">0%</div>
+                        <div class="text-xs uppercase tracking-wide opacity-90">Cumplimiento</div>
+                    </div>
+                    <div class="bg-gradient-to-br from-orange-500 to-orange-700 rounded-lg shadow p-4 text-white text-center">
+                        <div class="text-4xl font-bold mb-1" id="hero-modalidades">0</div>
+                        <div class="text-xs uppercase tracking-wide opacity-90">Modalidades</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 op-lower">
+                    <div class="bg-white rounded-lg shadow p-5 border-l-4 border-blue-600">
+                        <h3 class="text-lg font-bold text-gray-800 mb-3">Top 5 Jueces Mas Activos</h3>
+                        <div id="top5-jueces" class="space-y-2"></div>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="bg-white rounded-lg shadow p-5 border-l-4 border-green-600">
+                            <h3 class="text-lg font-bold text-gray-800 mb-3">Top 5 Modalidades</h3>
+                            <div id="modalidades-top" class="space-y-2"></div>
+                        </div>
+                        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-yellow-600">
+                            <h3 class="text-lg font-bold text-gray-800 mb-3">Duracion de Eventos</h3>
+                            <div id="duracion-stats" class="grid grid-cols-2 gap-2"></div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-5 border-l-4 border-indigo-600">
+                        <h3 class="text-lg font-bold text-gray-800 mb-3">Actividad Mensual</h3>
+                        <div class="overflow-y-auto op-mensual-scroll" style="max-height: 280px;">
+                            <table class="w-full text-sm">
+                                <thead class="bg-gray-100 sticky top-0"><tr><th class="px-3 py-2 text-left font-semibold text-gray-700">Mes</th><th class="px-3 py-2 text-right font-semibold text-gray-700">Eventos</th></tr></thead>
+                                <tbody id="tablaMensualResumen"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="space-y-4 op-mini-charts">
+                        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-pink-600">
+                            <h3 class="text-sm font-bold text-gray-800 mb-2">Duracion (dias)</h3>
+                            <div class="mini-chart-container"><canvas id="miniChartDuracion"></canvas></div>
+                        </div>
+                        <div class="bg-white rounded-lg shadow p-4 border-l-4 border-orange-600">
+                            <h3 class="text-sm font-bold text-gray-800 mb-2">Top 10 Jueces</h3>
+                            <div class="mini-chart-container"><canvas id="miniChartNombres"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- TAB 1: GRAFICAS -->
+            <div id="panel-graficas" class="p-6" style="display:none;">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="bg-white rounded-lg shadow p-6"><h2 class="text-xl font-bold text-gray-800 mb-4">Nombramientos por Modalidad</h2><div class="chart-container"><canvas id="chartModalidad"></canvas></div></div>
+                    <div class="bg-white rounded-lg shadow p-6"><h2 class="text-xl font-bold text-gray-800 mb-4">Distribucion por Status</h2><div class="chart-container"><canvas id="chartStatus"></canvas></div></div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="bg-white rounded-lg shadow p-6"><h2 class="text-xl font-bold text-gray-800 mb-4">Top 10 Jueces por Dias Acumulados</h2><div class="chart-container"><canvas id="chartPersonasDias"></canvas></div></div>
+                    <div class="bg-white rounded-lg shadow p-6"><h2 class="text-xl font-bold text-gray-800 mb-4">Duracion de Eventos</h2><div class="chart-container"><canvas id="chartDuracion"></canvas></div></div>
+                </div>
+                <div class="grid grid-cols-1 gap-6">
+                    <div class="bg-white rounded-lg shadow p-6"><h2 class="text-xl font-bold text-gray-800 mb-4">Top 10 Jueces con Mas Nombramientos</h2><div class="chart-container"><canvas id="chartNombres"></canvas></div></div>
+                </div>
+            </div>
+
+            <!-- TAB 2: TABLAS -->
+            <div id="panel-tablas" class="p-6" style="display:none;">
+                <div class="space-y-6">
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <h2 class="text-xl font-bold text-gray-800 mb-4">Eventos por Mes</h2>
+                        <div class="table-responsive"><table class="data-table"><thead><tr><th>Mes</th><th>Cantidad de Eventos</th></tr></thead><tbody id="tbodyEventosMes"></tbody></table></div>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-xl font-bold text-gray-800">Participacion por Juez</h2>
+                            <div class="flex items-center gap-2">
+                                <label class="text-sm font-medium text-gray-700">Mostrar:</label>
+                                <select id="topNParticipacion" class="px-3 py-1 border border-gray-300 rounded text-sm" onchange="setTopNParticipacion(this.value)"><option value="">Todos</option><option value="5">Top 5</option><option value="10">Top 10</option><option value="15">Top 15</option><option value="20">Top 20</option></select>
+                                <input type="number" id="customTopNParticipacion" placeholder="Custom" class="px-3 py-1 border border-gray-300 rounded text-sm w-28" min="1" onchange="setTopNParticipacion(this.value)">
+                            </div>
+                        </div>
+                        <div class="table-responsive"><table class="data-table"><thead><tr><th>Nombre</th><th>#Veces</th><th>%</th></tr></thead><tbody id="tbodyParticipacion"></tbody></table></div>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-xl font-bold text-gray-800">Nombramientos por Juez y Mes</h2>
+                            <div class="flex items-center gap-2">
+                                <label class="text-sm font-medium text-gray-700">Mostrar:</label>
+                                <select id="topNNombreMes" class="px-3 py-1 border border-gray-300 rounded text-sm" onchange="setTopNNombreMes(this.value)"><option value="">Todos</option><option value="5">Top 5</option><option value="10">Top 10</option><option value="15">Top 15</option><option value="20">Top 20</option></select>
+                                <input type="number" id="customTopNNombreMes" placeholder="Custom" class="px-3 py-1 border border-gray-300 rounded text-sm w-28" min="1" onchange="setTopNNombreMes(this.value)">
+                            </div>
+                        </div>
+                        <div class="table-responsive"><table class="data-table pivot-table"><thead id="theadNombreMes"></thead><tbody id="tbodyNombreMes"></tbody></table></div>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-xl font-bold text-gray-800">Nombramientos por Juez y Duracion</h2>
+                            <div class="flex items-center gap-2">
+                                <label class="text-sm font-medium text-gray-700">Mostrar:</label>
+                                <select id="topNNombreDuracion" class="px-3 py-1 border border-gray-300 rounded text-sm" onchange="setTopNNombreDuracion(this.value)"><option value="">Todos</option><option value="5">Top 5</option><option value="10">Top 10</option><option value="15">Top 15</option><option value="20">Top 20</option></select>
+                                <input type="number" id="customTopNNombreDuracion" placeholder="Custom" class="px-3 py-1 border border-gray-300 rounded text-sm w-28" min="1" onchange="setTopNNombreDuracion(this.value)">
+                            </div>
+                        </div>
+                        <div class="table-responsive"><table class="data-table pivot-table"><thead id="theadNombreDuracion"></thead><tbody id="tbodyNombreDuracion"></tbody></table></div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- TAB 3: INTERACTIVO -->
+            <div id="panel-interactivo" class="p-6" style="display:none;">
+                <div class="border-b flex overflow-x-auto mb-6">
+                    <button onclick="showSubTab('chat')" id="sub-tab-chat" class="px-6 py-3 font-medium text-blue-600 border-b-2 border-blue-600">Chat</button>
+                    <button onclick="showSubTab('table')" id="sub-tab-table" class="px-6 py-3 font-medium text-gray-500">Explorar Tabla</button>
+                    <button onclick="showSubTab('custom')" id="sub-tab-custom" class="px-6 py-3 font-medium text-gray-500">Grafica Personalizada</button>
+                </div>
+                <div id="sub-panel-chat">
+                    <div class="mb-4"><h3 class="font-bold text-gray-800 mb-2">Ejemplos:</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <button onclick="askQuestion('top 10 por modalidad')" class="text-left px-4 py-2 bg-blue-50 hover:bg-blue-100 rounded text-sm text-blue-700">Top 10 por modalidad</button>
+                            <button onclick="askQuestion('estadisticas')" class="text-left px-4 py-2 bg-blue-50 hover:bg-blue-100 rounded text-sm text-blue-700">Estadisticas</button>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 mb-4">
+                        <input type="text" id="chatInput" placeholder="Escribe tu pregunta..." class="flex-1 px-4 py-2 border border-gray-300 rounded-lg" onkeypress="if(event.key==='Enter') processChat()">
+                        <button onclick="processChat()" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium">Enviar</button>
+                    </div>
+                    <div id="chatResponse" class="bg-gray-50 rounded-lg p-4 min-h-[200px]"></div>
+                </div>
+                <div id="sub-panel-table" style="display:none;">
+                    <div class="mb-4 flex gap-4">
+                        <input type="text" id="tableSearch" placeholder="Buscar..." class="flex-1 px-4 py-2 border rounded-lg" oninput="filterTable()">
+                        <select id="columnFilter" class="px-4 py-2 border rounded-lg" onchange="filterTable()"><option value="">Todas las columnas</option></select>
+                    </div>
+                    <div class="overflow-x-auto"><table id="dataTable" class="min-w-full border-collapse"><thead class="bg-gray-100"><tr id="tableHeader"></tr></thead><tbody id="tableBody"></tbody></table></div>
+                    <div class="mt-4 flex justify-between items-center">
+                        <div class="text-sm text-gray-600">Mostrando <span id="tableCount">0</span> registros</div>
+                        <div class="flex gap-2">
+                            <button onclick="changePage(-1)" class="px-4 py-2 bg-gray-200 rounded">Anterior</button>
+                            <span class="px-4 py-2">Pagina <span id="currentPage">1</span></span>
+                            <button onclick="changePage(1)" class="px-4 py-2 bg-gray-200 rounded">Siguiente</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="sub-panel-custom" style="display:none;">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                        <h3 class="font-bold text-blue-900 mb-2">Crea tu propia visualizacion con comparacion</h3>
+                        <p class="text-sm text-blue-700 mb-2">Ejemplo: Comparar 2025 vs 2026 por mes</p>
+                        <p class="text-xs text-blue-600">Eje X: MES | Eje Y: NOMBRE | Serie: ANIO | Agregacion: Conteo | Tipo: Linea</p>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-6 gap-4 mb-6">
+                        <div><label class="block text-sm font-medium text-gray-700 mb-2">Eje X</label><select id="customColumnX" class="w-full px-4 py-2 border rounded-lg"><option value="">-- Selecciona --</option></select></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-2">Eje Y</label><select id="customColumnY" class="w-full px-4 py-2 border rounded-lg"><option value="">-- Selecciona --</option></select></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-2">Serie/Comparar</label><select id="customSerie" class="w-full px-4 py-2 border rounded-lg"><option value="">(Ninguna)</option></select></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-2">Agregacion</label><select id="customAggregation" class="w-full px-4 py-2 border rounded-lg"><option value="count">Conteo</option><option value="sum">Suma</option><option value="avg">Promedio</option><option value="min">Minimo</option><option value="max">Maximo</option></select></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-2">Tipo</label><select id="customChartType" class="w-full px-4 py-2 border rounded-lg"><option value="line">Linea</option><option value="bar">Barras</option><option value="horizontalBar">Barras Horiz.</option><option value="pie">Pastel</option></select></div>
+                        <div class="flex items-end"><button onclick="generateCustomChart()" class="w-full px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium">Generar</button></div>
+                    </div>
+                    <div class="bg-white rounded-lg border p-6"><div class="chart-container" style="height: 400px;"><canvas id="customChart"></canvas></div></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center text-gray-500 text-sm mt-8"><p>Generado por Code Puppy | Dashboard AJUCI</p></div>
+    </div>
+
+
+    <script>
+        const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1J4GFWRfhXA9VXEgLsN1pk4gQNdc1C6cVt-uiLGi-lxj01v8MRF1eVqL3oR06-VBwilf3gn_sva-7/pub?gid=592604919&single=true&output=csv";
+
+        const EXPECTED_COLUMNS = ["FECHA_EVENTO", "MES", "AÑO", "DURACION", "NOMBRE_EVENTO",
+                                  "LUGAR_EVENTO", "MODALIDAD", "NOMBRE", "ROL_ASIGNADO", "STATUS",
+                                  "CONT_EVENTO", "CONTADOR", "CLAS_DURAC"];
+
+        let DATA_ORIGINAL = [];
+        const COLUMNS = { names: EXPECTED_COLUMNS, types: {} };
+        let DATA = [];
+
+        const chartColors = ['#0053e2', '#ffc220', '#2a8703', '#00a3e0', '#76c043', '#6b21a8', '#ea580c', '#0891b2'];
+        let currentPage = 1, pageSize = 50, filteredData = [], customChartInstance = null;
+        let chartModalidad, chartStatus, chartDuracion, chartPersonasDias, chartNombres;
+        let miniChartDuracion, miniChartNombres;
+        let chartsInitialized = false;
+
+        let sortStateNombreMes = { column: 'total', direction: 'desc' };
+        let sortStateNombreDuracion = { column: 'total', direction: 'desc' };
+        let topNParticipacion = null, topNNombreMes = null, topNNombreDuracion = null;
+
+        const mesesNombres = {"1":"Enero","2":"Febrero","3":"Marzo","4":"Abril","5":"Mayo","6":"Junio","7":"Julio","8":"Agosto","9":"Septiembre","10":"Octubre","11":"Noviembre","12":"Diciembre"};
+
+        // === CARGA DE DATOS ===
+        function showLoading(msg) {
+            let el = document.getElementById('loadingOverlay');
+            if (!el) { el = document.createElement('div'); el.id = 'loadingOverlay'; el.style.cssText = 'position:fixed;inset:0;background:rgba(255,255,255,0.95);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;'; el.innerHTML = '<div style="border:5px solid #e5e7eb;border-top:5px solid #0053e2;border-radius:50%;width:60px;height:60px;animation:spin 1s linear infinite;"></div><p id="loadingMsg" style="margin-top:20px;color:#374151;font-size:16px;"></p><style>@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}</style>'; document.body.appendChild(el); }
+            document.getElementById('loadingMsg').textContent = msg;
+        }
+        function hideLoading() { const el = document.getElementById('loadingOverlay'); if (el) el.remove(); }
+        function showError(msg) { hideLoading(); const el = document.createElement('div'); el.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#fee2e2;color:#991b1b;padding:20px 30px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:10000;max-width:700px;font-size:14px;line-height:1.5;'; el.innerHTML = '<strong style="font-size:16px;">Error al cargar los datos</strong><br><br>' + msg; document.body.appendChild(el); }
+
+        function coerceRow(row) {
+            const aliases = { 'AÑO':'ANIO', 'Año':'ANIO', 'ANO':'ANIO', 'DURACIÓN':'DURACION', 'Duración':'DURACION' };
+            Object.keys(aliases).forEach(a => { if (row[a] !== undefined && row[aliases[a]] === undefined) { row[aliases[a]] = row[a]; delete row[a]; } });
+            ['MES','ANIO','DURACION','CONT_EVENTO','CONTADOR'].forEach(f => {
+                if (row[f] !== undefined && row[f] !== '' && row[f] !== null) { const n = Number(row[f]); row[f] = !isNaN(n) ? n : 0; }
+            });
+            return row;
+        }
+
+        function populateFilterAnios() {
+            const anios = [...new Set(DATA.map(r => r.ANIO).filter(a => a))].sort();
+            const sel = document.getElementById('filterAnio');
+            anios.forEach(a => { const o = document.createElement('option'); o.value = a; o.textContent = a; sel.appendChild(o); });
+        }
+
+        async function loadDataAndRender() {
+            showLoading('Cargando datos desde Google Sheets...');
+            try {
+                const parsed = await new Promise((resolve, reject) => {
+                    Papa.parse(SHEET_CSV_URL, {
+                        download: true, header: true, skipEmptyLines: true,
+                        complete: results => resolve(results),
+                        error: err => reject(err)
+                    });
+                });
+                if (!parsed.data || parsed.data.length === 0) throw new Error('Sheet vacio.');
+                DATA_ORIGINAL = parsed.data.map(coerceRow);
+                DATA = [...DATA_ORIGINAL];
+                filteredData = [...DATA];
+                document.getElementById('headerCount').textContent = DATA.length.toLocaleString();
+                document.getElementById('headerFecha').textContent = new Date().toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' });
+                populateFilterAnios();
+                renderTables();
+                renderResumenEjecutivo();
+                hideLoading();
+            } catch (err) {
+                console.error(err);
+                let msg = 'No se pudo conectar con Google Sheets. Causas comunes:<br><br>';
+                msg += '<strong>1. Red corporativa / VPN:</strong> desconecta el VPN.<br><br>';
+                msg += '<strong>2. Sheet no publico:</strong> verifica permisos.<br><br>';
+                msg += '<strong>3. URL incorrecta:</strong> abre la URL en el navegador.<br><br>';
+                msg += '<code style="background:#f3f4f6;padding:4px;border-radius:3px;font-size:11px;word-break:break-all;">' + SHEET_CSV_URL + '</code>';
+                showError(msg);
+            }
+        }
+        loadDataAndRender();
+
+
+        // === RESUMEN EJECUTIVO ===
+        function renderResumenEjecutivo() {
+            const total = DATA.length;
+            const eventosUnicos = DATA.reduce((s,r) => s + (r.CONT_EVENTO||0), 0);
+            const personasUnicas = new Set(DATA.map(r => r.NOMBRE)).size;
+            const realizados = DATA.filter(r => r.STATUS === 'Realizado').length;
+            const tasa = total > 0 ? (realizados / total * 100).toFixed(1) : 0;
+            const modalidades = new Set(DATA.map(r => r.MODALIDAD)).size;
+
+            document.getElementById('hero-total').textContent = total.toLocaleString();
+            document.getElementById('hero-eventos').textContent = eventosUnicos;
+            document.getElementById('hero-jueces').textContent = personasUnicas;
+            document.getElementById('hero-tasa').textContent = tasa + '%';
+            document.getElementById('hero-modalidades').textContent = modalidades;
+
+            // Top 5 Jueces
+            const nc = {}; DATA.forEach(r => { nc[r.NOMBRE] = (nc[r.NOMBRE]||0) + (r.CONTADOR||0); });
+            const top5 = Object.entries(nc).sort((a,b) => b[1]-a[1]).slice(0,5);
+            const mx = Math.max(...top5.map(x => x[1]));
+            const colors = ['bg-blue-600','bg-blue-500','bg-blue-400','bg-blue-300','bg-blue-200'];
+            document.getElementById('top5-jueces').innerHTML = top5.map(([n,c],i) => `<div><div class="flex justify-between items-center mb-1"><span class="font-semibold text-gray-700">${i+1}. ${n}</span><span class="text-sm font-bold text-blue-600">${c} eventos</span></div><div class="w-full bg-gray-200 rounded-full h-3"><div class="${colors[i]} h-3 rounded-full" style="width:${c/mx*100}%"></div></div></div>`).join('');
+
+            // Top 5 Modalidades
+            const mc = {}; DATA.forEach(r => { mc[r.MODALIDAD] = (mc[r.MODALIDAD]||0) + (r.CONT_EVENTO||0); });
+            const topM = Object.entries(mc).sort((a,b) => b[1]-a[1]).slice(0,5);
+            const mxM = topM.length > 0 ? Math.max(...topM.map(x => x[1])) : 1;
+            document.getElementById('modalidades-top').innerHTML = topM.map(([m,c]) => `<div><div class="flex justify-between items-center mb-1"><span class="text-sm font-medium text-gray-700">${m}</span><span class="text-xs font-bold text-green-600">${c}</span></div><div class="w-full bg-gray-200 rounded-full h-2"><div class="bg-green-600 h-2 rounded-full" style="width:${c/mxM*100}%"></div></div></div>`).join('');
+
+            // Duracion Stats
+            const de = {}, ec = new Set();
+            DATA.forEach(r => { if (!ec.has(r.NOMBRE_EVENTO)) { ec.add(r.NOMBRE_EVENTO); de[r.CLAS_DURAC] = (de[r.CLAS_DURAC]||0) + (r.CONT_EVENTO||0); } });
+            document.getElementById('duracion-stats').innerHTML = ['1 día','2 días','3 días','4 días o más'].filter(d => de[d]).map(d => `<div class="bg-yellow-50 rounded-lg p-3 text-center border border-yellow-200"><div class="text-xl font-bold text-yellow-700">${de[d]||0}</div><div class="text-xs text-gray-600 mt-1">${d}</div></div>`).join('');
+
+            // Tabla Mensual
+            const me = {}; DATA.forEach(r => { me[r.MES] = (me[r.MES]||0) + (r.CONT_EVENTO||0); });
+            let tot = 0, html = '';
+            for (let i=1;i<=12;i++) { const ev=me[i]||0; if(ev>0){tot+=ev;html+=`<tr class="hover:bg-gray-50"><td class="px-3 py-2 text-gray-700">${mesesNombres[i]}</td><td class="px-3 py-2 text-right font-semibold text-gray-800">${ev}</td></tr>`;} }
+            html += `<tr class="bg-blue-100 font-bold"><td class="px-3 py-2">TOTAL</td><td class="px-3 py-2 text-right text-blue-700">${tot}</td></tr>`;
+            document.getElementById('tablaMensualResumen').innerHTML = html;
+
+            // Mini Charts
+            const durC = {}; DATA.forEach(r => { durC[r.CLAS_DURAC] = (durC[r.CLAS_DURAC]||0)+1; });
+            const dOrd = ['1 día','2 días','3 días','4 días o más'];
+            const dL = dOrd.filter(d=>durC[d]), dV = dL.map(d=>durC[d]);
+            const nomC = {}; DATA.forEach(r => { nomC[r.NOMBRE] = (nomC[r.NOMBRE]||0)+1; });
+            const topN = Object.entries(nomC).sort((a,b)=>b[1]-a[1]).slice(0,10);
+
+            if (!miniChartDuracion) { miniChartDuracion = new Chart(document.getElementById('miniChartDuracion'), {type:'pie',data:{labels:dL,datasets:[{data:dV,backgroundColor:['#ffc220','#0053e2','#6b21a8','#00a3e0']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:9},boxWidth:10}}}}}); }
+            else { miniChartDuracion.data.labels=dL; miniChartDuracion.data.datasets[0].data=dV; miniChartDuracion.update(); }
+            if (!miniChartNombres) { miniChartNombres = new Chart(document.getElementById('miniChartNombres'), {type:'bar',data:{labels:topN.map(x=>x[0]),datasets:[{data:topN.map(x=>x[1]),backgroundColor:'#ea580c'}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{font:{size:9}}},y:{ticks:{font:{size:9}}}}}}); }
+            else { miniChartNombres.data.labels=topN.map(x=>x[0]); miniChartNombres.data.datasets[0].data=topN.map(x=>x[1]); miniChartNombres.update(); }
+        }
+
+
+        // === TABLAS ===
+        function renderTables() { renderTableEventosMes(); renderTableParticipacion(); renderTableNombreMes(); renderTableNombreDuracion(); }
+
+        function renderTableEventosMes() {
+            const tbody = document.getElementById('tbodyEventosMes');
+            const mc = {}; DATA.forEach(r => { mc[r.MES] = (mc[r.MES]||0) + (r.CONT_EVENTO||0); });
+            const sorted = Object.entries(mc).sort((a,b)=>parseInt(a[0])-parseInt(b[0]));
+            const total = sorted.reduce((s,[,c])=>s+c,0);
+            tbody.innerHTML = sorted.map(([m,c])=>`<tr><td>${mesesNombres[parseInt(m)]||m}</td><td>${c}</td></tr>`).join('') + `<tr class="bg-blue-50 font-bold"><td>TOTAL</td><td>${total}</td></tr>`;
+        }
+
+        function renderTableParticipacion() {
+            const tbody = document.getElementById('tbodyParticipacion');
+            const nc = {}; DATA.forEach(r => { nc[r.NOMBRE] = (nc[r.NOMBRE]||0) + (r.CONTADOR||0); });
+            const totalEv = DATA.reduce((s,r)=>s+(r.CONT_EVENTO||0),0);
+            let sorted = Object.entries(nc).sort((a,b)=>b[1]-a[1]);
+            if (topNParticipacion) sorted = sorted.slice(0,topNParticipacion);
+            tbody.innerHTML = sorted.map(([n,c])=>`<tr><td>${n}</td><td>${c}</td><td>${totalEv>0?(c/totalEv*100).toFixed(1):0}%</td></tr>`).join('');
+        }
+        function setTopNParticipacion(v) { const sv=document.getElementById('topNParticipacion').value; const cv=document.getElementById('customTopNParticipacion').value; if(cv&&cv>0){topNParticipacion=parseInt(cv);document.getElementById('topNParticipacion').value='';}else if(sv){topNParticipacion=parseInt(sv);document.getElementById('customTopNParticipacion').value='';}else{topNParticipacion=null;} renderTableParticipacion(); }
+
+        function renderTableNombreMes() {
+            const thead=document.getElementById('theadNombreMes'), tbody=document.getElementById('tbodyNombreMes');
+            const pivot={}, meses=new Set();
+            DATA.forEach(r=>{meses.add(r.MES);if(!pivot[r.NOMBRE])pivot[r.NOMBRE]={};pivot[r.NOMBRE][r.MES]=(pivot[r.NOMBRE][r.MES]||0)+1;});
+            const mOrd=Array.from(meses).sort((a,b)=>a-b);
+            thead.innerHTML=`<tr><th onclick="sortTableNombreMes('nombre')" class="sortable ${sortStateNombreMes.column==='nombre'?'sorted-'+sortStateNombreMes.direction:''}">Nombre</th>${mOrd.map(m=>`<th onclick="sortTableNombreMes(${m})" class="sortable ${sortStateNombreMes.column===m?'sorted-'+sortStateNombreMes.direction:''}">${mesesNombres[m]||m}</th>`).join('')}<th onclick="sortTableNombreMes('total')" class="sortable ${sortStateNombreMes.column==='total'?'sorted-'+sortStateNombreMes.direction:''}">Total</th></tr>`;
+            let data=Object.entries(pivot).map(([n,md])=>({n,md,t:Object.values(md).reduce((a,b)=>a+b,0)}));
+            const{column:col,direction:dir}=sortStateNombreMes;
+            data.sort((a,b)=>{if(col==='nombre')return dir==='asc'?a.n.localeCompare(b.n):b.n.localeCompare(a.n);const va=col==='total'?a.t:(a.md[col]||0);const vb=col==='total'?b.t:(b.md[col]||0);return dir==='asc'?va-vb:vb-va;});
+            if(topNNombreMes)data=data.slice(0,topNNombreMes);
+            tbody.innerHTML=data.map(item=>{const vals=mOrd.map(m=>item.md[m]||0);const mx=Math.max(...vals.filter(v=>v>0));return`<tr><td class="font-semibold">${item.n}</td>${mOrd.map(m=>{const v=item.md[m]||0;return`<td class="${v>0&&v===mx?'bg-yellow-200 font-bold':''}">${v}</td>`;}).join('')}<td class="font-bold">${item.t}</td></tr>`;}).join('');
+        }
+        function sortTableNombreMes(col){if(sortStateNombreMes.column===col)sortStateNombreMes.direction=sortStateNombreMes.direction==='asc'?'desc':'asc';else{sortStateNombreMes.column=col;sortStateNombreMes.direction='desc';}renderTableNombreMes();}
+        function setTopNNombreMes(v){const sv=document.getElementById('topNNombreMes').value;const cv=document.getElementById('customTopNNombreMes').value;if(cv&&cv>0){topNNombreMes=parseInt(cv);document.getElementById('topNNombreMes').value='';}else if(sv){topNNombreMes=parseInt(sv);document.getElementById('customTopNNombreMes').value='';}else{topNNombreMes=null;}renderTableNombreMes();}
+
+        function renderTableNombreDuracion() {
+            const thead=document.getElementById('theadNombreDuracion'), tbody=document.getElementById('tbodyNombreDuracion');
+            const pivot={}, durs=new Set();
+            DATA.forEach(r=>{durs.add(r.CLAS_DURAC);if(!pivot[r.NOMBRE])pivot[r.NOMBRE]={};pivot[r.NOMBRE][r.CLAS_DURAC]=(pivot[r.NOMBRE][r.CLAS_DURAC]||0)+1;});
+            const dOrd=['1 día','2 días','3 días','4 días o más'].filter(d=>durs.has(d));
+            thead.innerHTML=`<tr><th onclick="sortTableNombreDuracion('nombre')" class="sortable ${sortStateNombreDuracion.column==='nombre'?'sorted-'+sortStateNombreDuracion.direction:''}">Nombre</th>${dOrd.map(d=>`<th onclick="sortTableNombreDuracion('${d}')" class="sortable ${sortStateNombreDuracion.column===d?'sorted-'+sortStateNombreDuracion.direction:''}">${d}</th>`).join('')}<th onclick="sortTableNombreDuracion('total')" class="sortable ${sortStateNombreDuracion.column==='total'?'sorted-'+sortStateNombreDuracion.direction:''}">Total</th></tr>`;
+            let data=Object.entries(pivot).map(([n,dd])=>({n,dd,t:Object.values(dd).reduce((a,b)=>a+b,0)}));
+            const{column:col,direction:dir}=sortStateNombreDuracion;
+            data.sort((a,b)=>{if(col==='nombre')return dir==='asc'?a.n.localeCompare(b.n):b.n.localeCompare(a.n);const va=col==='total'?a.t:(a.dd[col]||0);const vb=col==='total'?b.t:(b.dd[col]||0);return dir==='asc'?va-vb:vb-va;});
+            if(topNNombreDuracion)data=data.slice(0,topNNombreDuracion);
+            tbody.innerHTML=data.map(item=>{const vals=dOrd.map(d=>item.dd[d]||0);const mx=Math.max(...vals.filter(v=>v>0));return`<tr><td class="font-semibold">${item.n}</td>${dOrd.map(d=>{const v=item.dd[d]||0;return`<td class="${v>0&&v===mx?'bg-yellow-200 font-bold':''}">${v}</td>`;}).join('')}<td class="font-bold">${item.t}</td></tr>`;}).join('');
+        }
+        function sortTableNombreDuracion(col){if(sortStateNombreDuracion.column===col)sortStateNombreDuracion.direction=sortStateNombreDuracion.direction==='asc'?'desc':'asc';else{sortStateNombreDuracion.column=col;sortStateNombreDuracion.direction='desc';}renderTableNombreDuracion();}
+        function setTopNNombreDuracion(v){const sv=document.getElementById('topNNombreDuracion').value;const cv=document.getElementById('customTopNNombreDuracion').value;if(cv&&cv>0){topNNombreDuracion=parseInt(cv);document.getElementById('topNNombreDuracion').value='';}else if(sv){topNNombreDuracion=parseInt(sv);document.getElementById('customTopNNombreDuracion').value='';}else{topNNombreDuracion=null;}renderTableNombreDuracion();}
+
+
+        // === CHARTS ===
+        function initCharts() {
+            const modC={},stC={},durC={},nomC={},pdC={};
+            DATA.forEach(r=>{modC[r.MODALIDAD]=(modC[r.MODALIDAD]||0)+1;stC[r.STATUS]=(stC[r.STATUS]||0)+1;durC[r.CLAS_DURAC]=(durC[r.CLAS_DURAC]||0)+1;nomC[r.NOMBRE]=(nomC[r.NOMBRE]||0)+1;pdC[r.NOMBRE]=(pdC[r.NOMBRE]||0)+(r.DURACION||0);});
+            const topMod=Object.entries(modC).sort((a,b)=>b[1]-a[1]).slice(0,8);
+            const topNom=Object.entries(nomC).sort((a,b)=>b[1]-a[1]).slice(0,10);
+            const topPD=Object.entries(pdC).sort((a,b)=>b[1]-a[1]).slice(0,10);
+            const dOrd=['1 día','2 días','3 días','4 días o más'];
+            const dL=[],dV=[];dOrd.forEach(l=>{if(durC[l]){dL.push(l);dV.push(durC[l]);}});
+
+            chartModalidad=new Chart(document.getElementById('chartModalidad'),{type:'bar',data:{labels:topMod.map(x=>x[0]),datasets:[{label:'Nombramientos',data:topMod.map(x=>x[1]),backgroundColor:chartColors[0]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+            chartStatus=new Chart(document.getElementById('chartStatus'),{type:'doughnut',data:{labels:Object.keys(stC),datasets:[{data:Object.values(stC),backgroundColor:[chartColors[2],chartColors[3],chartColors[1],chartColors[6]]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}});
+            chartDuracion=new Chart(document.getElementById('chartDuracion'),{type:'pie',data:{labels:dL,datasets:[{data:dV,backgroundColor:[chartColors[1],chartColors[0],chartColors[5],chartColors[3]]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}});
+            chartPersonasDias=new Chart(document.getElementById('chartPersonasDias'),{type:'bar',data:{labels:topPD.map(x=>x[0]),datasets:[{label:'Dias totales',data:topPD.map(x=>x[1]),backgroundColor:chartColors[4]}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}});
+            chartNombres=new Chart(document.getElementById('chartNombres'),{type:'bar',data:{labels:topNom.map(x=>x[0]),datasets:[{label:'Nombramientos',data:topNom.map(x=>x[1]),backgroundColor:chartColors[6]}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}});
+        }
+
+        function updateCharts() {
+            const modC={},stC={},durC={},nomC={},pdC={};
+            DATA.forEach(r=>{modC[r.MODALIDAD]=(modC[r.MODALIDAD]||0)+1;stC[r.STATUS]=(stC[r.STATUS]||0)+1;durC[r.CLAS_DURAC]=(durC[r.CLAS_DURAC]||0)+1;nomC[r.NOMBRE]=(nomC[r.NOMBRE]||0)+1;pdC[r.NOMBRE]=(pdC[r.NOMBRE]||0)+(r.DURACION||0);});
+            const topMod=Object.entries(modC).sort((a,b)=>b[1]-a[1]).slice(0,8);
+            const dOrd=['1 día','2 días','3 días','4 días o más'];const dL=[],dV=[];dOrd.forEach(l=>{if(durC[l]){dL.push(l);dV.push(durC[l]);}});
+            const topPD=Object.entries(pdC).sort((a,b)=>b[1]-a[1]).slice(0,10);
+            const topNom=Object.entries(nomC).sort((a,b)=>b[1]-a[1]).slice(0,10);
+            if(chartModalidad){chartModalidad.data.labels=topMod.map(x=>x[0]);chartModalidad.data.datasets[0].data=topMod.map(x=>x[1]);chartModalidad.update();}
+            if(chartStatus){chartStatus.data.labels=Object.keys(stC);chartStatus.data.datasets[0].data=Object.values(stC);chartStatus.update();}
+            if(chartDuracion){chartDuracion.data.labels=dL;chartDuracion.data.datasets[0].data=dV;chartDuracion.update();}
+            if(chartPersonasDias){chartPersonasDias.data.labels=topPD.map(x=>x[0]);chartPersonasDias.data.datasets[0].data=topPD.map(x=>x[1]);chartPersonasDias.update();}
+            if(chartNombres){chartNombres.data.labels=topNom.map(x=>x[0]);chartNombres.data.datasets[0].data=topNom.map(x=>x[1]);chartNombres.update();}
+            updateKPIs();
+        }
+
+        function updateKPIs() {
+            const total=DATA.length;
+            const ev=DATA.reduce((s,r)=>s+(r.CONT_EVENTO||0),0);
+            const per=new Set(DATA.map(r=>r.NOMBRE)).size;
+            const real=DATA.filter(r=>r.STATUS==='Realizado').length;
+            const tasa=total>0?(real/total*100).toFixed(1):0;
+            document.getElementById('kpi-total').textContent=total.toLocaleString();
+            document.getElementById('kpi-eventos').textContent=ev;
+            document.getElementById('kpi-personas').textContent=per;
+            document.getElementById('kpi-tasa').textContent=tasa+'%';
+            document.getElementById('kpi-realizados').textContent=real+' eventos realizados';
+        }
+
+
+        // === TABS ===
+        function showMainTab(tab) {
+            ['resumen','graficas','tablas','interactivo'].forEach(t=>{document.getElementById('panel-'+t).style.display='none';const b=document.getElementById('main-tab-'+t);b.classList.remove('text-blue-600','border-blue-600','border-b-3');b.classList.add('text-gray-500');});
+            document.getElementById('panel-'+tab).style.display='block';
+            const ab=document.getElementById('main-tab-'+tab);ab.classList.add('text-blue-600','border-blue-600','border-b-3');ab.classList.remove('text-gray-500');
+            if(tab==='resumen'){document.body.classList.add('onepager-mode');renderResumenEjecutivo();}else{document.body.classList.remove('onepager-mode');}
+            if(tab==='graficas'){if(!chartsInitialized){initCharts();chartsInitialized=true;}}
+            if(tab==='interactivo')initCustomChart();
+        }
+        function showSubTab(tab) {
+            ['chat','table','custom'].forEach(t=>{const p=document.getElementById('sub-panel-'+t);if(p)p.style.display='none';const b=document.getElementById('sub-tab-'+t);if(b){b.classList.remove('text-blue-600','border-blue-600','border-b-2');b.classList.add('text-gray-500');}});
+            document.getElementById('sub-panel-'+tab).style.display='block';
+            const ab=document.getElementById('sub-tab-'+tab);ab.classList.add('text-blue-600','border-blue-600','border-b-2');ab.classList.remove('text-gray-500');
+            if(tab==='table')renderExplorerTable();
+        }
+
+        // === FILTROS ===
+        function applyFilters() {
+            const anio=document.getElementById('filterAnio').value,mes=document.getElementById('filterMes').value,status=document.getElementById('filterStatus').value;
+            DATA=DATA_ORIGINAL.filter(r=>{if(anio&&r.ANIO!=anio)return false;if(mes&&r.MES!=mes)return false;if(status&&r.STATUS!=status)return false;return true;});
+            document.getElementById('filterStatusMsg').textContent=`Mostrando ${DATA.length} de ${DATA_ORIGINAL.length} registros`;
+            filteredData=[...DATA];currentPage=1;updateCharts();renderTables();renderResumenEjecutivo();
+        }
+        function resetFilters() {
+            document.getElementById('filterAnio').value='';document.getElementById('filterMes').value='';document.getElementById('filterStatus').value='';
+            DATA=[...DATA_ORIGINAL];filteredData=[...DATA];currentPage=1;
+            document.getElementById('filterStatusMsg').textContent='';
+            updateCharts();renderTables();renderResumenEjecutivo();
+        }
+
+        // === CHAT ===
+        function askQuestion(q){document.getElementById('chatInput').value=q;processChat();}
+        function processChat() {
+            const input=document.getElementById('chatInput').value.toLowerCase().trim();
+            const resp=document.getElementById('chatResponse');
+            if(!input){resp.innerHTML='<p class="text-gray-500">Escribe una pregunta.</p>';return;}
+            let answer='';
+            if(input.includes('estadistica')||input.includes('resumen')){
+                const mod=new Set(DATA.map(r=>r.MODALIDAD)).size;const roles=new Set(DATA.map(r=>r.ROL_ASIGNADO)).size;const per=new Set(DATA.map(r=>r.NOMBRE)).size;
+                answer=`<h3 class="font-bold mb-3 text-xl">Estadisticas</h3><div class="grid grid-cols-2 gap-4"><div class="bg-blue-50 p-4 rounded"><div class="text-sm text-gray-600">Total Registros</div><div class="text-2xl font-bold text-blue-600">${DATA.length}</div></div><div class="bg-green-50 p-4 rounded"><div class="text-sm text-gray-600">Personas</div><div class="text-2xl font-bold text-green-600">${per}</div></div><div class="bg-yellow-50 p-4 rounded"><div class="text-sm text-gray-600">Modalidades</div><div class="text-2xl font-bold text-yellow-600">${mod}</div></div><div class="bg-purple-50 p-4 rounded"><div class="text-sm text-gray-600">Roles</div><div class="text-2xl font-bold text-purple-600">${roles}</div></div></div>`;
+            } else if(input.includes('top')&&input.includes('por')){
+                const n=parseInt((input.match(/top\s+(\d+)/)||[null,10])[1])||10;
+                const col=(input.match(/por\s+(\w+)/)||[null,'MODALIDAD'])[1].toUpperCase();
+                const counts={};DATA.forEach(r=>{const v=r[col]||'Sin datos';counts[v]=(counts[v]||0)+1;});
+                const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,n);
+                answer=`<h3 class="font-bold mb-2">Top ${n} por ${col}:</h3><ol class="list-decimal pl-5">${sorted.map(([k,v])=>`<li>${k}: <strong>${v}</strong></li>`).join('')}</ol>`;
+            } else {answer='<p class="text-gray-600">Prueba: "estadisticas" o "top 10 por modalidad"</p>';}
+            resp.innerHTML=answer;
+        }
+
+        // === EXPLORAR TABLA ===
+        function renderExplorerTable() {
+            const hr=document.getElementById('tableHeader'),tb=document.getElementById('tableBody'),cf=document.getElementById('columnFilter');
+            if(!hr.children.length){hr.innerHTML=COLUMNS.names.map(c=>`<th class="px-4 py-2 text-left text-sm font-semibold text-gray-700 border-b">${c}</th>`).join('');cf.innerHTML='<option value="">Todas</option>'+COLUMNS.names.map(c=>`<option value="${c}">${c}</option>`).join('');}
+            const start=(currentPage-1)*pageSize;const pd=filteredData.slice(start,start+pageSize);
+            tb.innerHTML=pd.map(r=>'<tr class="hover:bg-gray-50">'+COLUMNS.names.map(c=>`<td class="px-4 py-2 text-sm border-b">${r[c]||'-'}</td>`).join('')+'</tr>').join('');
+            document.getElementById('tableCount').textContent=filteredData.length;document.getElementById('currentPage').textContent=currentPage;
+        }
+        function filterTable(){const term=document.getElementById('tableSearch').value.toLowerCase();const col=document.getElementById('columnFilter').value;filteredData=DATA.filter(r=>{if(col)return String(r[col]||'').toLowerCase().includes(term);return Object.values(r).some(v=>String(v||'').toLowerCase().includes(term));});currentPage=1;renderExplorerTable();}
+        function changePage(d){const max=Math.ceil(filteredData.length/pageSize);currentPage=Math.max(1,Math.min(currentPage+d,max));renderExplorerTable();}
+
+
+        // === GRAFICA PERSONALIZADA ===
+        function initCustomChart() {
+            const sx=document.getElementById('customColumnX'),sy=document.getElementById('customColumnY'),ss=document.getElementById('customSerie');
+            if(sx.children.length===1){COLUMNS.names.forEach(c=>{sx.appendChild(Object.assign(document.createElement('option'),{value:c,textContent:c}));sy.appendChild(Object.assign(document.createElement('option'),{value:c,textContent:c}));ss.appendChild(Object.assign(document.createElement('option'),{value:c,textContent:c}));});}
+        }
+        function generateCustomChart() {
+            const colX=document.getElementById('customColumnX').value,colY=document.getElementById('customColumnY').value,colS=document.getElementById('customSerie').value,agg=document.getElementById('customAggregation').value,type=document.getElementById('customChartType').value;
+            if(!colX){showToast('Selecciona Eje X');return;}if(!colY){showToast('Selecciona Eje Y');return;}
+            const grouped={},seriesSet=new Set();
+            DATA.forEach(r=>{let kx=String(r[colX]||'Sin datos');const vy=r[colY];const ks=colS?String(r[colS]||'Sin datos'):null;if(colX==='MES'&&mesesNombres[parseInt(kx)])kx=mesesNombres[parseInt(kx)];if(ks)seriesSet.add(ks);const ck=ks?`${kx}|||${ks}`:kx;if(!grouped[ck])grouped[ck]=[];if(agg==='count'){grouped[ck].push(1);}else if(vy!==null&&vy!==undefined&&vy!==''){const n=typeof vy==='number'?vy:parseFloat(vy);if(!isNaN(n))grouped[ck].push(n);}});
+            const results={};Object.keys(grouped).forEach(k=>{const v=grouped[k];if(!v.length)return;switch(agg){case'count':results[k]=v.length;break;case'sum':results[k]=v.reduce((a,b)=>a+b,0);break;case'avg':results[k]=v.reduce((a,b)=>a+b,0)/v.length;break;case'min':results[k]=Math.min(...v);break;case'max':results[k]=Math.max(...v);break;}});
+            if(!Object.keys(results).length){showToast('No hay datos');return;}
+            if(customChartInstance)customChartInstance.destroy();
+            const aggL={'count':'Conteo','sum':'Suma','avg':'Promedio','min':'Min','max':'Max'};
+            let labels,datasets;
+            if(!colS){const sorted=Object.entries(results).sort((a,b)=>b[1]-a[1]).slice(0,20);labels=sorted.map(([k])=>k);datasets=[{label:`${aggL[agg]} de ${colY}`,data:sorted.map(([,v])=>agg==='avg'?parseFloat(v.toFixed(2)):v),backgroundColor:type==='line'?chartColors[0]:chartColors,borderColor:type==='line'?chartColors[0]:chartColors,borderWidth:type==='line'?3:1,fill:false,tension:0.4}];}
+            else{const allX=new Set();Object.keys(results).forEach(k=>{allX.add(k.split('|||')[0]);});labels=Array.from(allX);if(colX==='MES'){const mo=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];labels.sort((a,b)=>mo.indexOf(a)-mo.indexOf(b));}else{labels.sort();}const sa=Array.from(seriesSet).sort();datasets=sa.map((s,i)=>({label:`${s}`,data:labels.map(x=>{const k=`${x}|||${s}`;return results[k]||0;}),backgroundColor:chartColors[i%chartColors.length],borderColor:chartColors[i%chartColors.length],borderWidth:3,fill:false,tension:0.4}));}
+            const config={type:type==='horizontalBar'?'bar':type,data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'top'},title:{display:true,text:colS?`${colX} comparando ${colS}`:`${colX} vs ${aggL[agg]} de ${colY}`,font:{size:16,weight:'bold'}}},scales:type!=='pie'&&type!=='doughnut'?{x:{beginAtZero:true},y:{beginAtZero:true}}:undefined}};
+            if(type==='horizontalBar')config.options.indexAxis='y';
+            customChartInstance=new Chart(document.getElementById('customChart'),config);
+            showToast(colS?`Comparando ${colS}`:'Grafica generada');
+        }
+        function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';setTimeout(()=>t.style.display='none',4000);}
+
+        document.getElementById('chatResponse').innerHTML='<div class="text-center text-gray-500 py-8"><p class="text-lg font-medium text-gray-700">Hola! Preguntame sobre los datos</p><p class="text-sm mt-2">Prueba con "estadisticas"</p></div>';
+    </script>
+</body>
+</html>
