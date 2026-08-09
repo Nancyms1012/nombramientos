@@ -409,7 +409,7 @@
 
             // Duracion Stats
             const de = {}, ec = new Set();
-            DATA.forEach(r => { if (!ec.has(r.NOMBRE_EVENTO)) { ec.add(r.NOMBRE_EVENTO); de[r.CLAS_DURAC] = (de[r.CLAS_DURAC]||0) + (r.CONT_EVENTO||0); } });
+            DATA.forEach(r => { if (!ec.has(r.NOMBRE_EVENTO)) { ec.add(r.NOMBRE_EVENTO); de[r.CLAS_DURAC] = (de[r.CLAS_DURAC]||0) + 1; } });
             document.getElementById('duracion-stats').innerHTML = ['1 día','2 días','3 días','4 días o más'].filter(d => de[d]).map(d => `<div class="rounded-lg p-3 text-center border" style="background:#fff3e0;border-color:#E46C0A;"><div class="text-xl font-bold" style="color:#E46C0A;">${de[d]||0}</div><div class="text-xs text-gray-600 mt-1">${d}</div></div>`).join('');
 
             // Tabla Mensual
