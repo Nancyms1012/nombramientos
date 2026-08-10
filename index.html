@@ -521,15 +521,16 @@
 
         function renderTableNombreMes() {
             const thead=document.getElementById('theadNombreMes'), tbody=document.getElementById('tbodyNombreMes');
-            const pivot={}, meses=new Set();
-            DATA.forEach(r=>{meses.add(r.MES);if(!pivot[r.NOMBRE])pivot[r.NOMBRE]={};pivot[r.NOMBRE][r.MES]=(pivot[r.NOMBRE][r.MES]||0)+1;});
+            const pivot={}, meses=new Set(), mesTotales={};
+            DATA.forEach(r=>{meses.add(r.MES);if(!pivot[r.NOMBRE])pivot[r.NOMBRE]={};pivot[r.NOMBRE][r.MES]=(pivot[r.NOMBRE][r.MES]||0)+1;mesTotales[r.MES]=(mesTotales[r.MES]||0)+(r.CONT_EVENTO||0);});
             const mOrd=Array.from(meses).sort((a,b)=>a-b);
-            thead.innerHTML=`<tr><th onclick="sortTableNombreMes('nombre')" class="sortable ${sortStateNombreMes.column==='nombre'?'sorted-'+sortStateNombreMes.direction:''}">Nombre</th>${mOrd.map(m=>`<th onclick="sortTableNombreMes(${m})" class="sortable ${sortStateNombreMes.column===m?'sorted-'+sortStateNombreMes.direction:''}">${mesesNombres[m]||m}</th>`).join('')}<th onclick="sortTableNombreMes('total')" class="sortable ${sortStateNombreMes.column==='total'?'sorted-'+sortStateNombreMes.direction:''}">Total</th></tr>`;
+            const totalGeneral=Object.values(mesTotales).reduce((a,b)=>a+b,0);
+            thead.innerHTML=`<tr style="background:#f9e6f2;"><th style="padding:6px 8px;text-align:center;font-size:0.75rem;color:#D60093;">Eventos</th>${mOrd.map(m=>`<th style="padding:6px 8px;text-align:center;font-size:0.75rem;font-weight:bold;color:#D60093;">${mesTotales[m]||0}</th>`).join('')}<th style="padding:6px 8px;text-align:center;font-size:0.75rem;font-weight:bold;color:#D60093;">${totalGeneral}</th></tr><tr><th onclick="sortTableNombreMes('nombre')" class="sortable ${sortStateNombreMes.column==='nombre'?'sorted-'+sortStateNombreMes.direction:''}" style="background:#D60093;color:white;">Nombre</th>${mOrd.map(m=>`<th onclick="sortTableNombreMes(${m})" class="sortable ${sortStateNombreMes.column===m?'sorted-'+sortStateNombreMes.direction:''}" style="background:#D60093;color:white;">${mesesNombres[m]||m}</th>`).join('')}<th onclick="sortTableNombreMes('total')" class="sortable ${sortStateNombreMes.column==='total'?'sorted-'+sortStateNombreMes.direction:''}" style="background:#D60093;color:white;">Total</th></tr>`;
             let data=Object.entries(pivot).map(([n,md])=>({n,md,t:Object.values(md).reduce((a,b)=>a+b,0)}));
             const{column:col,direction:dir}=sortStateNombreMes;
             data.sort((a,b)=>{if(col==='nombre')return dir==='asc'?a.n.localeCompare(b.n):b.n.localeCompare(a.n);const va=col==='total'?a.t:(a.md[col]||0);const vb=col==='total'?b.t:(b.md[col]||0);return dir==='asc'?va-vb:vb-va;});
             if(topNNombreMes)data=data.slice(0,topNNombreMes);
-            tbody.innerHTML=data.map(item=>{const vals=mOrd.map(m=>item.md[m]||0);const mx=Math.max(...vals.filter(v=>v>0));return`<tr><td class="font-semibold">${item.n}</td>${mOrd.map(m=>{const v=item.md[m]||0;return`<td class="${v>0&&v===mx?'bg-yellow-200 font-bold':''}">${v}</td>`;}).join('')}<td class="font-bold">${item.t}</td></tr>`;}).join('');
+            tbody.innerHTML=data.map(item=>{const vals=mOrd.map(m=>item.md[m]||0);const mx=Math.max(...vals.filter(v=>v>0));return`<tr><td class="font-semibold">${item.n}</td>${mOrd.map(m=>{const v=item.md[m]||0;return`<td style="${v>0&&v===mx?'background:#FF9BE0;font-weight:bold;':''}">${v}</td>`;}).join('')}<td class="font-bold">${item.t}</td></tr>`;}).join('');
         }
         function sortTableNombreMes(col){if(sortStateNombreMes.column===col)sortStateNombreMes.direction=sortStateNombreMes.direction==='asc'?'desc':'asc';else{sortStateNombreMes.column=col;sortStateNombreMes.direction='desc';}renderTableNombreMes();}
         function setTopNNombreMes(v){const sv=document.getElementById('topNNombreMes').value;const cv=document.getElementById('customTopNNombreMes').value;if(cv&&cv>0){topNNombreMes=parseInt(cv);document.getElementById('topNNombreMes').value='';}else if(sv){topNNombreMes=parseInt(sv);document.getElementById('customTopNNombreMes').value='';}else{topNNombreMes=null;}renderTableNombreMes();}
