@@ -264,24 +264,10 @@
             <!-- TAB 3: INTERACTIVO -->
             <div id="panel-interactivo" class="p-6" style="display:none;">
                 <div class="border-b flex overflow-x-auto mb-6">
-                    <button onclick="showSubTab('chat')" id="sub-tab-chat" class="px-6 py-3 font-medium text-blue-600 border-b-2 border-blue-600">Chat</button>
-                    <button onclick="showSubTab('table')" id="sub-tab-table" class="px-6 py-3 font-medium text-gray-500">Explorar Tabla</button>
+                    <button onclick="showSubTab('table')" id="sub-tab-table" class="px-6 py-3 font-medium text-blue-600 border-b-2 border-blue-600">Explorar Tabla</button>
                     <button onclick="showSubTab('custom')" id="sub-tab-custom" class="px-6 py-3 font-medium text-gray-500">Grafica Personalizada</button>
                 </div>
-                <div id="sub-panel-chat">
-                    <div class="mb-4"><h3 class="font-bold text-gray-800 mb-2">Ejemplos:</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                            <button onclick="askQuestion('top 10 por modalidad')" class="text-left px-4 py-2 bg-blue-50 hover:bg-blue-100 rounded text-sm text-blue-700">Top 10 por modalidad</button>
-                            <button onclick="askQuestion('estadisticas')" class="text-left px-4 py-2 bg-blue-50 hover:bg-blue-100 rounded text-sm text-blue-700">Estadisticas</button>
-                        </div>
-                    </div>
-                    <div class="flex gap-2 mb-4">
-                        <input type="text" id="chatInput" placeholder="Escribe tu pregunta..." class="flex-1 px-4 py-2 border border-gray-300 rounded-lg" onkeypress="if(event.key==='Enter') processChat()">
-                        <button onclick="processChat()" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium">Enviar</button>
-                    </div>
-                    <div id="chatResponse" class="bg-gray-50 rounded-lg p-4 min-h-[200px]"></div>
-                </div>
-                <div id="sub-panel-table" style="display:none;">
+                <div id="sub-panel-table">
                     <div class="mb-4 flex gap-4">
                         <input type="text" id="tableSearch" placeholder="Buscar..." class="flex-1 px-4 py-2 border rounded-lg" oninput="filterTable()">
                         <select id="columnFilter" class="px-4 py-2 border rounded-lg" onchange="filterTable()"><option value="">Todas las columnas</option></select>
