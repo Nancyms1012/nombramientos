@@ -553,15 +553,17 @@
 
         function renderTableNombreRol() {
             const thead=document.getElementById('theadNombreRol'), tbody=document.getElementById('tbodyNombreRol');
-            const pivot={}, roles=new Set();
-            DATA.forEach(r=>{roles.add(r.ROL_ASIGNADO);if(!pivot[r.NOMBRE])pivot[r.NOMBRE]={};pivot[r.NOMBRE][r.ROL_ASIGNADO]=(pivot[r.NOMBRE][r.ROL_ASIGNADO]||0)+1;});
-            const rOrd=Array.from(roles).sort();
-            thead.innerHTML=`<tr><th onclick="sortTableNombreRol('nombre')" class="sortable ${sortStateNombreRol.column==='nombre'?'sorted-'+sortStateNombreRol.direction:''}">Nombre</th>${rOrd.map(r=>`<th onclick="sortTableNombreRol('${r}')" class="sortable ${sortStateNombreRol.column===r?'sorted-'+sortStateNombreRol.direction:''}">${r}</th>`).join('')}<th onclick="sortTableNombreRol('total')" class="sortable ${sortStateNombreRol.column==='total'?'sorted-'+sortStateNombreRol.direction:''}">Total</th></tr>`;
-            let data=Object.entries(pivot).map(([n,rd])=>({n,rd,t:Object.values(rd).reduce((a,b)=>a+b,0)}));
+            const pivot={}, rolTotales={};
+            DATA.forEach(r=>{if(!pivot[r.NOMBRE])pivot[r.NOMBRE]={};pivot[r.NOMBRE][r.ROL_ASIGNADO]=(pivot[r.NOMBRE][r.ROL_ASIGNADO]||0)+1;rolTotales[r.ROL_ASIGNADO]=(rolTotales[r.ROL_ASIGNADO]||0)+(r.CONT_EVENTO||0);});
+            // Top 10 roles por eventos
+            const rOrd=Object.entries(rolTotales).sort((a,b)=>b[1]-a[1]).slice(0,10).map(x=>x[0]);
+            const totalGeneral=rOrd.reduce((s,r)=>s+(rolTotales[r]||0),0);
+            thead.innerHTML=`<tr style="background:#f3f4f6 !important;"><th style="background:#f3f4f6 !important;padding:6px 8px;text-align:center;font-size:0.75rem;color:#3366CC;">Eventos</th>${rOrd.map(r=>`<th style="background:#f3f4f6 !important;padding:6px 8px;text-align:center;font-size:0.75rem;font-weight:bold;color:#3366CC;">${rolTotales[r]||0}</th>`).join('')}<th style="background:#f3f4f6 !important;padding:6px 8px;text-align:center;font-size:0.75rem;font-weight:bold;color:#3366CC;">${totalGeneral}</th></tr><tr><th onclick="sortTableNombreRol('nombre')" class="sortable ${sortStateNombreRol.column==='nombre'?'sorted-'+sortStateNombreRol.direction:''}" style="background:#6699FF !important;color:white;">Nombre</th>${rOrd.map(r=>`<th onclick="sortTableNombreRol('${r}')" class="sortable ${sortStateNombreRol.column===r?'sorted-'+sortStateNombreRol.direction:''}" style="background:#6699FF !important;color:white;">${r}</th>`).join('')}<th onclick="sortTableNombreRol('total')" class="sortable ${sortStateNombreRol.column==='total'?'sorted-'+sortStateNombreRol.direction:''}" style="background:#6699FF !important;color:white;">Total</th></tr>`;
+            let data=Object.entries(pivot).map(([n,rd])=>({n,rd,t:rOrd.reduce((s,r)=>s+(rd[r]||0),0)}));
             const{column:col,direction:dir}=sortStateNombreRol;
             data.sort((a,b)=>{if(col==='nombre')return dir==='asc'?a.n.localeCompare(b.n):b.n.localeCompare(a.n);const va=col==='total'?a.t:(a.rd[col]||0);const vb=col==='total'?b.t:(b.rd[col]||0);return dir==='asc'?va-vb:vb-va;});
             if(topNNombreRol)data=data.slice(0,topNNombreRol);
-            tbody.innerHTML=data.map(item=>{const vals=rOrd.map(r=>item.rd[r]||0);const mx=Math.max(...vals.filter(v=>v>0));return`<tr><td class="font-semibold">${item.n}</td>${rOrd.map(r=>{const v=item.rd[r]||0;return`<td class="${v>0&&v===mx?'bg-yellow-200 font-bold':''}">${v||''}</td>`;}).join('')}<td class="font-bold">${item.t}</td></tr>`;}).join('');
+            tbody.innerHTML=data.map(item=>{const vals=rOrd.map(r=>item.rd[r]||0);const mx=Math.max(...vals.filter(v=>v>0));return`<tr><td class="font-semibold">${item.n}</td>${rOrd.map(r=>{const v=item.rd[r]||0;return`<td style="${v>0&&v===mx?'background:#C5D8FF;font-weight:bold;':''}">${v||''}</td>`;}).join('')}<td class="font-bold">${item.t}</td></tr>`;}).join('');
         }
         function sortTableNombreRol(col){if(sortStateNombreRol.column===col)sortStateNombreRol.direction=sortStateNombreRol.direction==='asc'?'desc':'asc';else{sortStateNombreRol.column=col;sortStateNombreRol.direction='desc';}renderTableNombreRol();}
         function setTopNNombreRol(v){const sv=document.getElementById('topNNombreRol').value;const cv=document.getElementById('customTopNNombreRol').value;if(cv&&cv>0){topNNombreRol=parseInt(cv);document.getElementById('topNNombreRol').value='';}else if(sv){topNNombreRol=parseInt(sv);document.getElementById('customTopNNombreRol').value='';}else{topNNombreRol=null;}renderTableNombreRol();}
