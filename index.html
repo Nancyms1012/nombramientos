@@ -222,7 +222,7 @@
                                 <input type="number" id="customTopNParticipacion" placeholder="Custom" class="px-3 py-1 border border-gray-300 rounded text-sm w-28" min="1" onchange="setTopNParticipacion(this.value)">
                             </div>
                         </div>
-                        <div class="table-responsive"><table class="data-table"><thead><tr><th>Nombre</th><th>#Veces</th><th>%</th></tr></thead><tbody id="tbodyParticipacion"></tbody></table></div>
+                        <div class="table-responsive"><table class="data-table" style="max-width:500px;"><thead><tr><th style="padding:6px 8px;">Nombre</th><th style="padding:6px 8px;text-align:center;">#Veces</th><th style="padding:6px 8px;text-align:center;">%</th></tr></thead><tbody id="tbodyParticipacion"></tbody></table></div>
                     </div>
                     <div class="bg-gray-50 rounded-lg p-6">
                         <div class="flex justify-between items-center mb-4">
@@ -515,7 +515,7 @@
             const totalEv = DATA.reduce((s,r)=>s+(r.CONT_EVENTO||0),0);
             let sorted = Object.entries(nc).sort((a,b)=>b[1]-a[1]);
             if (topNParticipacion) sorted = sorted.slice(0,topNParticipacion);
-            tbody.innerHTML = sorted.map(([n,c])=>`<tr><td>${n}</td><td>${c}</td><td>${totalEv>0?(c/totalEv*100).toFixed(1):0}%</td></tr>`).join('');
+            tbody.innerHTML = sorted.map(([n,c])=>`<tr><td style="padding:6px 8px;">${n}</td><td style="padding:6px 8px;text-align:center;">${c}</td><td style="padding:6px 8px;text-align:center;font-weight:bold;">${totalEv>0?(c/totalEv*100).toFixed(1):0}%</td></tr>`).join('');
         }
         function setTopNParticipacion(v) { const sv=document.getElementById('topNParticipacion').value; const cv=document.getElementById('customTopNParticipacion').value; if(cv&&cv>0){topNParticipacion=parseInt(cv);document.getElementById('topNParticipacion').value='';}else if(sv){topNParticipacion=parseInt(sv);document.getElementById('customTopNParticipacion').value='';}else{topNParticipacion=null;} renderTableParticipacion(); }
 
