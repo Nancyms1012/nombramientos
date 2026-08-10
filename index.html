@@ -554,15 +554,12 @@
         function renderTableNombreRol() {
             const thead=document.getElementById('theadNombreRol'), tbody=document.getElementById('tbodyNombreRol');
             const pivot={}, rolTotales={};
-            // Contar eventos únicos por rol
-            const eventosRol={};
             DATA.forEach(r=>{
                 if(!pivot[r.NOMBRE])pivot[r.NOMBRE]={};
                 pivot[r.NOMBRE][r.ROL_ASIGNADO]=(pivot[r.NOMBRE][r.ROL_ASIGNADO]||0)+1;
-                const keyEvRol=`${r.NOMBRE_EVENTO}|||${r.ROL_ASIGNADO}`;
-                if(!eventosRol[keyEvRol]){eventosRol[keyEvRol]=true;rolTotales[r.ROL_ASIGNADO]=(rolTotales[r.ROL_ASIGNADO]||0)+1;}
+                rolTotales[r.ROL_ASIGNADO]=(rolTotales[r.ROL_ASIGNADO]||0)+(r.CONTADOR||0);
             });
-            // Top 10 roles por eventos
+            // Top 10 roles por nombramientos
             const rOrd=Object.entries(rolTotales).sort((a,b)=>b[1]-a[1]).slice(0,10).map(x=>x[0]);
             const totalGeneral=rOrd.reduce((s,r)=>s+(rolTotales[r]||0),0);
             thead.innerHTML=`<tr style="background:#f3f4f6 !important;"><th style="background:#f3f4f6 !important;padding:6px 8px;text-align:center;font-size:0.75rem;color:#3366CC;">Eventos</th>${rOrd.map(r=>`<th style="background:#f3f4f6 !important;padding:6px 8px;text-align:center;font-size:0.75rem;font-weight:bold;color:#3366CC;">${rolTotales[r]||0}</th>`).join('')}<th style="background:#f3f4f6 !important;padding:6px 8px;text-align:center;font-size:0.75rem;font-weight:bold;color:#3366CC;">${totalGeneral}</th></tr><tr><th onclick="sortTableNombreRol('nombre')" class="sortable ${sortStateNombreRol.column==='nombre'?'sorted-'+sortStateNombreRol.direction:''}" style="background:#6699FF !important;color:white;">Nombre</th>${rOrd.map(r=>`<th onclick="sortTableNombreRol('${r}')" class="sortable ${sortStateNombreRol.column===r?'sorted-'+sortStateNombreRol.direction:''}" style="background:#6699FF !important;color:white;">${r}</th>`).join('')}<th onclick="sortTableNombreRol('total')" class="sortable ${sortStateNombreRol.column==='total'?'sorted-'+sortStateNombreRol.direction:''}" style="background:#6699FF !important;color:white;">Total</th></tr>`;
