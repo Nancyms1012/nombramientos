@@ -486,7 +486,7 @@
             });
             const aniosOrd = Array.from(anios).sort();
             // Header
-            thead.innerHTML = `<tr><th style="background:#1F497D;color:white;padding:8px;">Mes</th>${aniosOrd.map(a=>`<th style="background:#1F497D;color:white;padding:8px;text-align:center;">${a}</th>`).join('')}</tr>`;
+            thead.innerHTML = `<tr><th style="background:#CCFF33;color:#333;padding:8px;">Mes</th>${aniosOrd.map(a=>`<th style="background:#CCFF33;color:#333;padding:8px;text-align:center;">${a}</th>`).join('')}</tr>`;
             // Body
             const totales = {};
             aniosOrd.forEach(a => { totales[a] = 0; });
