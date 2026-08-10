@@ -554,7 +554,14 @@
         function renderTableNombreRol() {
             const thead=document.getElementById('theadNombreRol'), tbody=document.getElementById('tbodyNombreRol');
             const pivot={}, rolTotales={};
-            DATA.forEach(r=>{if(!pivot[r.NOMBRE])pivot[r.NOMBRE]={};pivot[r.NOMBRE][r.ROL_ASIGNADO]=(pivot[r.NOMBRE][r.ROL_ASIGNADO]||0)+1;rolTotales[r.ROL_ASIGNADO]=(rolTotales[r.ROL_ASIGNADO]||0)+(r.CONT_EVENTO||0);});
+            // Contar eventos únicos por rol
+            const eventosRol={};
+            DATA.forEach(r=>{
+                if(!pivot[r.NOMBRE])pivot[r.NOMBRE]={};
+                pivot[r.NOMBRE][r.ROL_ASIGNADO]=(pivot[r.NOMBRE][r.ROL_ASIGNADO]||0)+1;
+                const keyEvRol=`${r.NOMBRE_EVENTO}|||${r.ROL_ASIGNADO}`;
+                if(!eventosRol[keyEvRol]){eventosRol[keyEvRol]=true;rolTotales[r.ROL_ASIGNADO]=(rolTotales[r.ROL_ASIGNADO]||0)+1;}
+            });
             // Top 10 roles por eventos
             const rOrd=Object.entries(rolTotales).sort((a,b)=>b[1]-a[1]).slice(0,10).map(x=>x[0]);
             const totalGeneral=rOrd.reduce((s,r)=>s+(rolTotales[r]||0),0);
