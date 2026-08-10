@@ -611,7 +611,7 @@
                 pointRadius:4,
                 fill:false
             }));
-            chartTendencia=new Chart(document.getElementById('chartTendencia'),{type:'line',data:{labels:mesLabels,datasets:tendenciaDatasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'top',labels:{font:{size:10}}},datalabels:{display:true,anchor:'end',align:'top',font:{weight:'bold',size:9},color:'#333'}},scales:{y:{display:false,beginAtZero:true},x:{grid:{display:false}}}}});
+            chartTendencia=new Chart(document.getElementById('chartTendencia'),{type:'line',data:{labels:mesLabels,datasets:tendenciaDatasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'right',labels:{font:{size:10}}},datalabels:{display:true,anchor:'end',align:'top',font:{weight:'bold',size:9},color:'#333'}},scales:{y:{display:false,beginAtZero:true},x:{grid:{display:false}}}}});
         }
 
         function updateCharts() {
