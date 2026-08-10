@@ -211,7 +211,7 @@
                 <div class="space-y-6">
                     <div class="bg-gray-50 rounded-lg p-6">
                         <h2 class="text-xl font-bold text-gray-800 mb-4">Eventos por Mes</h2>
-                        <div class="table-responsive"><table class="data-table"><thead><tr><th>Mes</th><th>Cantidad de Eventos</th></tr></thead><tbody id="tbodyEventosMes"></tbody></table></div>
+                        <div class="table-responsive"><table class="data-table" style="max-width:500px;"><thead id="theadEventosMes"></thead><tbody id="tbodyEventosMes"></tbody></table></div>
                     </div>
                     <div class="bg-gray-50 rounded-lg p-6">
                         <div class="flex justify-between items-center mb-4">
@@ -473,11 +473,40 @@
         function renderTables() { renderTableEventosMes(); renderTableParticipacion(); renderTableNombreMes(); renderTableNombreDuracion(); renderTableNombreRol(); }
 
         function renderTableEventosMes() {
+            const thead = document.getElementById('theadEventosMes');
             const tbody = document.getElementById('tbodyEventosMes');
-            const mc = {}; DATA.forEach(r => { mc[r.MES] = (mc[r.MES]||0) + (r.CONT_EVENTO||0); });
-            const sorted = Object.entries(mc).sort((a,b)=>parseInt(a[0])-parseInt(b[0]));
-            const total = sorted.reduce((s,[,c])=>s+c,0);
-            tbody.innerHTML = sorted.map(([m,c])=>`<tr><td>${mesesNombres[parseInt(m)]||m}</td><td>${c}</td></tr>`).join('') + `<tr class="bg-blue-50 font-bold"><td>TOTAL</td><td>${total}</td></tr>`;
+            // Agrupar por mes y año
+            const mesAnio = {};
+            const anios = new Set();
+            DATA.forEach(r => {
+                const a = r.ANIO; if (!a) return;
+                anios.add(a);
+                const key = `${r.MES}_${a}`;
+                mesAnio[key] = (mesAnio[key]||0) + (r.CONT_EVENTO||0);
+            });
+            const aniosOrd = Array.from(anios).sort();
+            // Header
+            thead.innerHTML = `<tr><th style="background:#1F497D;color:white;padding:8px;">Mes</th>${aniosOrd.map(a=>`<th style="background:#1F497D;color:white;padding:8px;text-align:center;">${a}</th>`).join('')}</tr>`;
+            // Body
+            const totales = {};
+            aniosOrd.forEach(a => { totales[a] = 0; });
+            let html = '';
+            for (let m = 1; m <= 12; m++) {
+                const hasData = aniosOrd.some(a => mesAnio[`${m}_${a}`]);
+                if (!hasData) continue;
+                html += `<tr><td style="padding:6px 8px;">${mesesNombres[m]}</td>`;
+                aniosOrd.forEach(a => {
+                    const v = mesAnio[`${m}_${a}`] || 0;
+                    totales[a] += v;
+                    html += `<td style="padding:6px 8px;text-align:center;">${v || '-'}</td>`;
+                });
+                html += '</tr>';
+            }
+            // Total row
+            html += `<tr style="background:#e0ecf8;font-weight:bold;"><td style="padding:6px 8px;">TOTAL</td>`;
+            aniosOrd.forEach(a => { html += `<td style="padding:6px 8px;text-align:center;color:#1F497D;">${totales[a]}</td>`; });
+            html += '</tr>';
+            tbody.innerHTML = html;
         }
 
         function renderTableParticipacion() {
