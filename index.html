@@ -587,13 +587,31 @@
             const longAll=Object.values(longC).sort((a,b)=>a-b); const longMedian=longAll.length>0?(longAll.length%2===0?(longAll[longAll.length/2-1]+longAll[longAll.length/2])/2:longAll[Math.floor(longAll.length/2)]):0;
             chartBottom=new Chart(document.getElementById('chartBottom'),{type:'bar',data:{labels:topLong.map(x=>x[0]),datasets:[{type:'bar',label:'Participaciones',data:topLong.map(x=>x[1]),backgroundColor:longGrad},{type:'line',label:`Mediana (${longMedian})`,data:topLong.map(()=>longMedian),borderColor:'#333',borderWidth:2,borderDash:[5,5],pointRadius:0,fill:false,datalabels:{display:false}}]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:20}},plugins:{legend:{display:true,labels:{font:{size:9}}},datalabels:{display:true,anchor:'end',align:'top',font:{weight:'bold',size:9},color:'#333'}},scales:{y:{display:false,beginAtZero:true},x:{grid:{display:false},ticks:{font:{size:8},maxRotation:45}}}}});
 
-            // Tendencia mensual
-            const mesC={};
-            DATA.forEach(r=>{mesC[r.MES]=(mesC[r.MES]||0)+(r.CONT_EVENTO||0);});
-            const mesesOrd=Array.from({length:12},(_,i)=>i+1).filter(m=>mesC[m]);
-            const mesLabels=mesesOrd.map(m=>mesesNombres[m]);
-            const mesValues=mesesOrd.map(m=>mesC[m]);
-            chartTendencia=new Chart(document.getElementById('chartTendencia'),{type:'line',data:{labels:mesLabels,datasets:[{label:'Eventos por mes',data:mesValues,borderColor:'#1F497D',backgroundColor:'rgba(31,73,125,0.1)',borderWidth:3,fill:true,tension:0.4,pointBackgroundColor:'#1F497D',pointRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{display:true,anchor:'end',align:'top',font:{weight:'bold',size:10},color:'#1F497D'}},scales:{y:{display:false,beginAtZero:true},x:{grid:{display:false}}}}});
+            // Tendencia mensual por año
+            const mesAnio={};
+            const anios=new Set();
+            DATA.forEach(r=>{
+                const a=r.ANIO; if(!a) return;
+                anios.add(a);
+                if(!mesAnio[a]) mesAnio[a]={};
+                mesAnio[a][r.MES]=(mesAnio[a][r.MES]||0)+(r.CONT_EVENTO||0);
+            });
+            const aniosOrd=Array.from(anios).sort();
+            const mesesAll=Array.from({length:12},(_,i)=>i+1);
+            const mesLabels=mesesAll.map(m=>mesesNombres[m]);
+            const anioColors=['#1F497D','#E46C0A','#7030A0','#00B0F0','#558000'];
+            const tendenciaDatasets=aniosOrd.map((a,idx)=>({
+                label:String(a),
+                data:mesesAll.map(m=>mesAnio[a][m]||0),
+                borderColor:anioColors[idx%anioColors.length],
+                backgroundColor:'transparent',
+                borderWidth:3,
+                tension:0.4,
+                pointBackgroundColor:anioColors[idx%anioColors.length],
+                pointRadius:4,
+                fill:false
+            }));
+            chartTendencia=new Chart(document.getElementById('chartTendencia'),{type:'line',data:{labels:mesLabels,datasets:tendenciaDatasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'top',labels:{font:{size:10}}},datalabels:{display:true,anchor:'end',align:'top',font:{weight:'bold',size:9},color:'#333'}},scales:{y:{display:false,beginAtZero:true},x:{grid:{display:false}}}}});
         }
 
         function updateCharts() {
@@ -624,9 +642,16 @@
                 const topLong2=Object.entries(longC2).sort((a,b)=>b[1]-a[1]).slice(0,10);
                 chartBottom.data.labels=topLong2.map(x=>x[0]);chartBottom.data.datasets[0].data=topLong2.map(x=>x[1]);chartBottom.update();
             }
-            const mesC={};DATA.forEach(r=>{mesC[r.MES]=(mesC[r.MES]||0)+(r.CONT_EVENTO||0);});
-            const mesesOrd=Array.from({length:12},(_,i)=>i+1).filter(m=>mesC[m]);
-            if(chartTendencia){chartTendencia.data.labels=mesesOrd.map(m=>mesesNombres[m]);chartTendencia.data.datasets[0].data=mesesOrd.map(m=>mesC[m]);chartTendencia.update();}
+            if(chartTendencia){
+                const mesAnio2={};const anios2=new Set();
+                DATA.forEach(r=>{const a=r.ANIO;if(!a)return;anios2.add(a);if(!mesAnio2[a])mesAnio2[a]={};mesAnio2[a][r.MES]=(mesAnio2[a][r.MES]||0)+(r.CONT_EVENTO||0);});
+                const aniosOrd2=Array.from(anios2).sort();
+                const mesesAll2=Array.from({length:12},(_,i)=>i+1);
+                const anioColors2=['#1F497D','#E46C0A','#7030A0','#00B0F0','#558000'];
+                chartTendencia.data.labels=mesesAll2.map(m=>mesesNombres[m]);
+                chartTendencia.data.datasets=aniosOrd2.map((a,idx)=>({label:String(a),data:mesesAll2.map(m=>mesAnio2[a][m]||0),borderColor:anioColors2[idx%anioColors2.length],backgroundColor:'transparent',borderWidth:3,tension:0.4,pointBackgroundColor:anioColors2[idx%anioColors2.length],pointRadius:4,fill:false}));
+                chartTendencia.update();
+            }
             updateKPIs();
         }
 
