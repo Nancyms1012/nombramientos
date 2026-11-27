@@ -315,6 +315,7 @@
                                   "LUGAR_EVENTO", "MODALIDAD", "NOMBRE", "ROL_ASIGNADO", "STATUS",
                                   "CONT_EVENTO", "CONTADOR", "CLAS_DURAC", "TIPO_NOMB"];
 
+        const TIPO_INICIAL = 'AJUCI';
         let DATA_ORIGINAL = [];
         const COLUMNS = { names: EXPECTED_COLUMNS, types: {} };
         let DATA = [];
@@ -380,6 +381,16 @@
                 document.getElementById('headerFecha').textContent = new Date().toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' });
                 populateFilterAnios();
                 populateFilterTipos();
+                // Filtros iniciales: tipo AJUCI (excluye CHOFER, FECOCI, Externo) y año actual
+                const selTipo = document.getElementById('filterTipo');
+                const selAnio = document.getElementById('filterAnio');
+                const anioActual = String(new Date().getFullYear());
+                if ([...selTipo.options].some(o => o.value === TIPO_INICIAL)) selTipo.value = TIPO_INICIAL;
+                if ([...selAnio.options].some(o => o.value === anioActual)) selAnio.value = anioActual;
+                DATA = DATA_ORIGINAL.filter(r => (!selTipo.value || (r.TIPO_NOMB || '').trim() === selTipo.value) && (!selAnio.value || String(r.ANIO) === selAnio.value));
+                filteredData = [...DATA];
+                document.getElementById('headerCount').textContent = DATA.length.toLocaleString();
+                if (selTipo.value || selAnio.value) document.getElementById('filterStatusMsg').textContent = `Mostrando ${DATA.length} de ${DATA_ORIGINAL.length} registros`;
                 renderTables();
                 renderResumenEjecutivo();
                 hideLoading();
