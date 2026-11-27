@@ -315,6 +315,7 @@
                                   "LUGAR_EVENTO", "MODALIDAD", "NOMBRE", "ROL_ASIGNADO", "STATUS",
                                   "CONT_EVENTO", "CONTADOR", "CLAS_DURAC", "TIPO_NOMB"];
 
+        const TIPO_INICIAL = 'AJUCI';
         let DATA_ORIGINAL = [];
         const COLUMNS = { names: EXPECTED_COLUMNS, types: {} };
         let DATA = [];
@@ -380,6 +381,15 @@
                 document.getElementById('headerFecha').textContent = new Date().toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' });
                 populateFilterAnios();
                 populateFilterTipos();
+                // Filtro inicial: solo nombramientos AJUCI (excluye CHOFER, FECOCI, Externo)
+                const selTipo = document.getElementById('filterTipo');
+                if ([...selTipo.options].some(o => o.value === TIPO_INICIAL)) {
+                    selTipo.value = TIPO_INICIAL;
+                    DATA = DATA_ORIGINAL.filter(r => (r.TIPO_NOMB || '').trim() === TIPO_INICIAL);
+                    filteredData = [...DATA];
+                    document.getElementById('headerCount').textContent = DATA.length.toLocaleString();
+                    document.getElementById('filterStatusMsg').textContent = `Mostrando ${DATA.length} de ${DATA_ORIGINAL.length} registros`;
+                }
                 renderTables();
                 renderResumenEjecutivo();
                 hideLoading();
