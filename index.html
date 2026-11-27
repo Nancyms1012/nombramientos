@@ -86,6 +86,9 @@
                     <option value="Pendiente">Pendiente</option>
                     <option value="Pospuesto">Pospuesto</option>
                 </select>
+                <select id="filterTipo" class="px-4 py-2 border border-gray-300 rounded-lg" onchange="applyFilters()">
+                    <option value="">Todos los tipos de nombramiento</option>
+                </select>
                 <button onclick="resetFilters()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-700 font-medium">Limpiar Filtros</button>
                 <div id="filterStatusMsg" class="ml-auto text-sm text-gray-600"></div>
             </div>
@@ -310,7 +313,7 @@
 
         const EXPECTED_COLUMNS = ["FECHA_EVENTO", "MES", "AÑO", "DURACION", "NOMBRE_EVENTO",
                                   "LUGAR_EVENTO", "MODALIDAD", "NOMBRE", "ROL_ASIGNADO", "STATUS",
-                                  "CONT_EVENTO", "CONTADOR", "CLAS_DURAC"];
+                                  "CONT_EVENTO", "CONTADOR", "CLAS_DURAC", "TIPO_NOMB"];
 
         let DATA_ORIGINAL = [];
         const COLUMNS = { names: EXPECTED_COLUMNS, types: {} };
@@ -353,6 +356,12 @@
             anios.forEach(a => { const o = document.createElement('option'); o.value = a; o.textContent = a; sel.appendChild(o); });
         }
 
+        function populateFilterTipos() {
+            const tipos = [...new Set(DATA.map(r => (r.TIPO_NOMB || '').trim()).filter(t => t))].sort();
+            const sel = document.getElementById('filterTipo');
+            tipos.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; sel.appendChild(o); });
+        }
+
         async function loadDataAndRender() {
             showLoading('Cargando datos desde Google Sheets...');
             try {
@@ -370,6 +379,7 @@
                 document.getElementById('headerCount').textContent = DATA.length.toLocaleString();
                 document.getElementById('headerFecha').textContent = new Date().toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' });
                 populateFilterAnios();
+                populateFilterTipos();
                 renderTables();
                 renderResumenEjecutivo();
                 hideLoading();
@@ -710,13 +720,13 @@
 
         // === FILTROS ===
         function applyFilters() {
-            const anio=document.getElementById('filterAnio').value,mes=document.getElementById('filterMes').value,status=document.getElementById('filterStatus').value;
-            DATA=DATA_ORIGINAL.filter(r=>{if(anio&&r.ANIO!=anio)return false;if(mes&&r.MES!=mes)return false;if(status&&r.STATUS!=status)return false;return true;});
+            const anio=document.getElementById('filterAnio').value,mes=document.getElementById('filterMes').value,status=document.getElementById('filterStatus').value,tipo=document.getElementById('filterTipo').value;
+            DATA=DATA_ORIGINAL.filter(r=>{if(tipo&&(r.TIPO_NOMB||'').trim()!==tipo)return false;if(anio&&r.ANIO!=anio)return false;if(mes&&r.MES!=mes)return false;if(status&&r.STATUS!=status)return false;return true;});
             document.getElementById('filterStatusMsg').textContent=`Mostrando ${DATA.length} de ${DATA_ORIGINAL.length} registros`;
             filteredData=[...DATA];currentPage=1;updateCharts();renderTables();renderResumenEjecutivo();
         }
         function resetFilters() {
-            document.getElementById('filterAnio').value='';document.getElementById('filterMes').value='';document.getElementById('filterStatus').value='';
+            document.getElementById('filterAnio').value='';document.getElementById('filterMes').value='';document.getElementById('filterStatus').value='';document.getElementById('filterTipo').value='';
             DATA=[...DATA_ORIGINAL];filteredData=[...DATA];currentPage=1;
             document.getElementById('filterStatusMsg').textContent='';
             updateCharts();renderTables();renderResumenEjecutivo();
