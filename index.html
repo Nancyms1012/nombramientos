@@ -351,6 +351,17 @@
             return row;
         }
 
+        // CONT_EVENTO viene del Sheet con un 1 solo en la ultima fila de cada evento.
+        // Al filtrar (ej. por tipo), esa fila puede quedar fuera y el evento no se contaba.
+        // Aqui se recalcula sobre las filas visibles: el 1 va en la ultima fila visible de cada evento.
+        function recalcContEvento(rows) {
+            const copia = rows.map(r => Object.assign({}, r, { CONT_EVENTO: 0 }));
+            const ultima = {};
+            copia.forEach((r, i) => { ultima[(r.FECHA_EVENTO || '') + '|' + (r.NOMBRE_EVENTO || '')] = i; });
+            Object.values(ultima).forEach(i => { copia[i].CONT_EVENTO = 1; });
+            return copia;
+        }
+
         function populateFilterAnios() {
             const anios = [...new Set(DATA.map(r => r.ANIO).filter(a => a))].sort();
             const sel = document.getElementById('filterAnio');
@@ -375,7 +386,7 @@
                 });
                 if (!parsed.data || parsed.data.length === 0) throw new Error('Sheet vacio.');
                 DATA_ORIGINAL = parsed.data.map(coerceRow);
-                DATA = [...DATA_ORIGINAL];
+                DATA = recalcContEvento(DATA_ORIGINAL);
                 filteredData = [...DATA];
                 document.getElementById('headerCount').textContent = DATA.length.toLocaleString();
                 document.getElementById('headerFecha').textContent = new Date().toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' });
@@ -387,7 +398,7 @@
                 const anioActual = String(new Date().getFullYear());
                 if ([...selTipo.options].some(o => o.value === TIPO_INICIAL)) selTipo.value = TIPO_INICIAL;
                 if ([...selAnio.options].some(o => o.value === anioActual)) selAnio.value = anioActual;
-                DATA = DATA_ORIGINAL.filter(r => (!selTipo.value || (r.TIPO_NOMB || '').trim() === selTipo.value) && (!selAnio.value || String(r.ANIO) === selAnio.value));
+                DATA = recalcContEvento(DATA_ORIGINAL.filter(r => (!selTipo.value || (r.TIPO_NOMB || '').trim() === selTipo.value) && (!selAnio.value || String(r.ANIO) === selAnio.value)));
                 filteredData = [...DATA];
                 document.getElementById('headerCount').textContent = DATA.length.toLocaleString();
                 if (selTipo.value || selAnio.value) document.getElementById('filterStatusMsg').textContent = `Mostrando ${DATA.length} de ${DATA_ORIGINAL.length} registros`;
@@ -732,13 +743,13 @@
         // === FILTROS ===
         function applyFilters() {
             const anio=document.getElementById('filterAnio').value,mes=document.getElementById('filterMes').value,status=document.getElementById('filterStatus').value,tipo=document.getElementById('filterTipo').value;
-            DATA=DATA_ORIGINAL.filter(r=>{if(tipo&&(r.TIPO_NOMB||'').trim()!==tipo)return false;if(anio&&r.ANIO!=anio)return false;if(mes&&r.MES!=mes)return false;if(status&&r.STATUS!=status)return false;return true;});
+            DATA=recalcContEvento(DATA_ORIGINAL.filter(r=>{if(tipo&&(r.TIPO_NOMB||'').trim()!==tipo)return false;if(anio&&r.ANIO!=anio)return false;if(mes&&r.MES!=mes)return false;if(status&&r.STATUS!=status)return false;return true;}));
             document.getElementById('filterStatusMsg').textContent=`Mostrando ${DATA.length} de ${DATA_ORIGINAL.length} registros`;
             filteredData=[...DATA];currentPage=1;updateCharts();renderTables();renderResumenEjecutivo();
         }
         function resetFilters() {
             document.getElementById('filterAnio').value='';document.getElementById('filterMes').value='';document.getElementById('filterStatus').value='';document.getElementById('filterTipo').value='';
-            DATA=[...DATA_ORIGINAL];filteredData=[...DATA];currentPage=1;
+            DATA=recalcContEvento(DATA_ORIGINAL);filteredData=[...DATA];currentPage=1;
             document.getElementById('filterStatusMsg').textContent='';
             updateCharts();renderTables();renderResumenEjecutivo();
         }
